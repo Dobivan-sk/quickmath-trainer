@@ -34,7 +34,7 @@
 
   .kodak-stripe{
     position:absolute;
-    top:10vh; top:10dvh;
+    top:5vh; top:5dvh;
     left:5vw; right:5vw;
     height:5px;
     background: repeating-linear-gradient(90deg, var(--yellow) 0 26px, var(--red) 26px 52px);
@@ -43,8 +43,8 @@
 
   .screen{
     position:absolute;
-    top:10vh; top:10dvh;
-    bottom:10vh; bottom:10dvh;
+    top:5vh; top:5dvh;
+    bottom:5vh; bottom:5dvh;
     left:5vw; right:5vw;
     display:none;
     flex-direction:column; align-items:center; justify-content:center;
@@ -134,7 +134,7 @@
 
   .footer-credit{
     position:absolute;
-    bottom: calc(10vh + 14px); bottom: calc(10dvh + 14px);
+    bottom: calc(5vh + 14px); bottom: calc(5dvh + 14px);
     left:50%;
     transform:translateX(-50%);
     font-size:11px; opacity:0.35; letter-spacing:0.5px;
@@ -218,21 +218,14 @@
 
   .keypad{
     display:flex; flex-direction:column; align-items:center;
-    gap: 8px;
     margin-top: 10px;
     width: 100%;
-  }
-  .keypad-enter{
-    width: min(60vw, 220px);
-    margin-top: 0;
-    padding: 7px 0;
-    font-size: clamp(13px, 3.6vw, 17px);
   }
   .keypad-grid{
     display:grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 7px;
-    width: min(60vw, 220px);
+    width: min(57vw, 209px);
   }
   .keypad-key{
     aspect-ratio: 1;
@@ -242,7 +235,7 @@
     color: var(--yellow);
     font-family:inherit;
     font-weight:100;
-    font-size: clamp(18px, 6vw, 36px);
+    font-size: clamp(17px, 5.7vw, 34px);
     line-height:1;
     padding: 0;
     border-radius: 24%;
@@ -250,29 +243,21 @@
     transition: background .15s ease, transform .08s ease;
   }
   .keypad-key:active{ background: rgba(255,204,0,0.25); transform: scale(0.94); }
-  .keypad-zero{ grid-column: 2; }
-  .keypad-backspace{
-    width: min(60vw, 220px);
-    margin-top: 0;
-    padding: 7px 0;
-    font-size: clamp(14px, 4vw, 18px);
+  .keypad-action{
+    font-size: clamp(9px, 2.8vw, 14px);
+    letter-spacing: 0.5px;
   }
 
   @media (max-height: 750px){
     .screen{ padding: 16px 20px; }
-    .keypad{ margin-top:6px; gap:6px; }
+    .keypad{ margin-top:6px; }
     .keypad-grid{ gap:5px; }
-    .keypad-enter, .keypad-backspace{ padding:5px 0; }
     .timer-wrap{ margin-top:8px; }
     .sub-text{ margin-top:6px; }
   }
 
   @media (max-height: 700px){
-    .keypad-grid, .keypad-enter, .keypad-backspace{ width: min(52vw, 190px); }
-    .keypad{ gap:4px; }
-    .keypad-grid{ gap:4px; }
-    #screen-game{ justify-content:flex-start; padding-top: 64px; }
-    #screen-game .problem-text, #screen-game .answer-input{ font-size: clamp(28px, 11vw, 44px); }
+    .keypad-grid{ width: min(49vw, 180px); gap:4px; }
   }
 
   .levelup-toast{
@@ -400,7 +385,6 @@
     <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
 
     <div class="keypad">
-      <button class="btn keypad-enter" id="keypad-enter">ENTER</button>
       <div class="keypad-grid">
         <button class="keypad-key" data-digit="1">1</button>
         <button class="keypad-key" data-digit="2">2</button>
@@ -411,9 +395,10 @@
         <button class="keypad-key" data-digit="7">7</button>
         <button class="keypad-key" data-digit="8">8</button>
         <button class="keypad-key" data-digit="9">9</button>
-        <button class="keypad-key keypad-zero" data-digit="0">0</button>
+        <button class="keypad-key keypad-action" id="keypad-enter">ENTER</button>
+        <button class="keypad-key" data-digit="0">0</button>
+        <button class="keypad-key keypad-action" id="keypad-backspace">⌫</button>
       </div>
-      <button class="btn keypad-backspace" id="keypad-backspace">⌫</button>
     </div>
 
     <div class="feedback-layer" id="feedback-layer"></div>
@@ -919,7 +904,7 @@
   document.getElementById('keypad-enter').addEventListener('click', submitAnswer);
   document.getElementById('keypad-backspace').addEventListener('click', backspaceDigit);
 
-  document.querySelectorAll('.keypad-key').forEach(function(btn){
+  document.querySelectorAll('.keypad-key[data-digit]').forEach(function(btn){
     btn.addEventListener('click', function(){
       vibrateTap();
       appendDigit(btn.dataset.digit);
