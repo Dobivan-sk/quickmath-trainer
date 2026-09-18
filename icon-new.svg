@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 516">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+      }
+
+      .cls-2, .cls-3 {
+        font-size: 304.19px;
+      }
+
+      .cls-2, .cls-3, .cls-4, .cls-5 {
+        font-family: SFProDisplay-Ultralight, 'SF Pro Display';
+        font-weight: 100;
+        isolation: isolate;
+      }
+
+      .cls-2, .cls-5 {
+        fill: #ed1c24;
+      }
+
+      .cls-3, .cls-4 {
+        fill: #fc0;
+      }
+
+      .cls-4 {
+        font-size: 408.02px;
+      }
+
+      .cls-6 {
+        clip-path: url(#clippath);
+      }
+
+      .cls-5 {
+        font-size: 386.29px;
+      }
+    </style>
+    <clipPath id="clippath">
+      <rect class="cls-1" y="4" width="512" height="512" rx="115" ry="115"/>
+    </clipPath>
+  </defs>
+  <g class="cls-6">
+    <g>
+      <rect y="4" width="512" height="512"/>
+      <text class="cls-3" transform="translate(9.84 259.26)"><tspan x="0" y="0">Q</tspan></text>
+      <text class="cls-2" transform="translate(258.77 259.26)"><tspan x="0" y="0">M</tspan></text>
+      <text class="cls-5" transform="translate(11.05 493.81)"><tspan x="0" y="0">×</tspan></text>
+      <text class="cls-4" transform="translate(255.82 497.75)"><tspan x="0" y="0">÷</tspan></text>
+    </g>
+  </g>
+</svg>

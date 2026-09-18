@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon-new.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<title>QuickMath Trainer</title>
+<style>
+  :root{
+    --bg:#000000;
+    --yellow:#FFCC00;
+    --yellow-dim: rgba(255,204,0,0.35);
+    --red:#ED1C24;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{
+    margin:0; padding:0; height:100%; width:100%;
+    background:var(--bg);
+    color:var(--yellow);
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    font-weight:100;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{ position:relative; width:100%; height:100vh; height:100dvh; }
+
+  .kodak-stripe{
+    position:absolute; top:0; left:0; right:0; height:5px;
+    background: repeating-linear-gradient(90deg, var(--yellow) 0 26px, var(--red) 26px 52px);
+    z-index:5;
+  }
+
+  .screen{
+    position:absolute; inset:0;
+    display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+    padding: 28px 20px;
+    text-align:center;
+    overflow-y:auto;
+  }
+  .screen.active{ display:flex; }
+
+  h1.title{
+    font-weight:100;
+    font-size: clamp(28px, 9vw, 56px);
+    color:var(--yellow);
+    letter-spacing:1px;
+    margin:0 0 4px 0;
+  }
+  h1.title span{ color:var(--red); }
+
+  .tagline{
+    font-size: clamp(11px, 3.2vw, 16px);
+    opacity:0.65;
+    margin:0 0 28px 0;
+    font-weight:100;
+  }
+
+  .btn{
+    background:transparent;
+    border:1.5px solid var(--yellow);
+    color:var(--yellow);
+    font-family:inherit;
+    font-weight:100;
+    font-size: clamp(15px, 4vw, 20px);
+    padding: 13px 44px;
+    border-radius: 40px;
+    cursor:pointer;
+    letter-spacing:1.5px;
+    margin-top: 10px;
+    transition: background .15s ease, color .15s ease, transform .08s ease;
+  }
+  .btn:active{ background:var(--yellow); color:#000; transform:scale(0.97); }
+  .btn.secondary{ border-color: rgba(255,204,0,0.4); color: rgba(255,204,0,0.8); font-size: clamp(13px,3.4vw,16px); padding: 10px 30px; }
+
+  .hs-box{ margin-top:34px; width:100%; max-width:280px; }
+  .hs-box h2{
+    font-weight:100; font-size: clamp(12px,3.2vw,15px);
+    letter-spacing:2px; opacity:0.55; margin:0 0 10px 0;
+  }
+  .hs-row{
+    display:flex; justify-content:space-between;
+    font-size: clamp(13px,3.6vw,17px);
+    padding: 5px 4px;
+    border-bottom: 1px solid rgba(255,204,0,0.12);
+  }
+  .hs-row .n{ color:var(--yellow); opacity:0.9; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:65%; }
+  .hs-row .s{ color:var(--red); }
+  .hs-empty{ opacity:0.4; font-size:13px; padding:10px 0; }
+
+  /* HUD */
+  .hud{
+    position:absolute; top:0; left:0; right:0;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding: 22px 18px 0 18px;
+    font-size: clamp(11px, 3vw, 15px);
+    opacity:0.85;
+    z-index:3;
+  }
+  .hud .block{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .hud .label{ font-size: 0.7em; opacity:0.6; letter-spacing:1px; }
+  .hud .value{ font-size: 1.3em; }
+  .lives{ color:var(--red); letter-spacing:3px; font-size:1.1em; }
+  .lives .empty{ opacity:0.2; }
+
+  .hud-controls{ display:flex; gap:8px; }
+  .hud-btn{
+    background:transparent;
+    border:1.5px solid var(--yellow);
+    border-radius:40px;
+    font-family:inherit; font-weight:100;
+    color:var(--yellow);
+    font-size: clamp(7.7px, 2.1vw, 10.5px);
+    letter-spacing:1px;
+    cursor:pointer; padding:4px 10px;
+    white-space:nowrap;
+    transition: background .15s ease, color .15s ease, transform .08s ease;
+  }
+  .hud-btn:active{ background:var(--yellow); color:#000; transform:scale(0.97); }
+
+  .footer-credit{
+    position:absolute; bottom:14px; left:50%;
+    transform:translateX(-50%);
+    font-size:11px; opacity:0.35; letter-spacing:0.5px;
+    z-index:5; pointer-events:none; white-space:nowrap;
+  }
+
+  .lang-switch{ position:absolute; top:18px; right:18px; z-index:3; }
+  .lang-select{
+    background:#000;
+    color:var(--yellow);
+    border:1.5px solid rgba(255,204,0,0.4);
+    border-radius:20px;
+    font-family:inherit; font-weight:100;
+    font-size: clamp(11px,3vw,14px);
+    padding:6px 10px;
+    outline:none;
+    cursor:pointer;
+  }
+
+  .howto-text{
+    font-size: clamp(14px, 4vw, 18px);
+    font-weight:100;
+    opacity:0.85;
+    line-height:1.6;
+    max-width: 520px;
+    margin: 0 0 30px 0;
+  }
+
+  /* Game screen */
+  .equation-row{
+    display:flex; align-items:baseline; justify-content:center; gap: 0.25em;
+    flex-wrap:wrap;
+  }
+  .problem-text{
+    font-size: clamp(38px, 15vw, 130px);
+    font-weight:100;
+    color:var(--yellow);
+    letter-spacing:1px;
+    white-space:nowrap;
+  }
+  .answer-input{
+    font-size: clamp(38px, 15vw, 130px);
+    font-weight:100;
+    background:transparent;
+    border:none;
+    border-bottom: 3px solid var(--red);
+    color:var(--red);
+    text-align:center;
+    width: 4.2ch;
+    font-family:inherit;
+    outline:none;
+    caret-color:var(--red);
+    padding:0 0 4px 0;
+  }
+  .answer-input.reveal{
+    color: var(--yellow);
+    border-bottom-color: var(--yellow);
+  }
+  .sub-text{
+    font-size: clamp(11px, 4vw, 20px);
+    font-weight:100;
+    color:var(--yellow);
+    opacity:0.55;
+    margin-top: 18px;
+    letter-spacing:0.5px;
+  }
+  .timer-wrap{
+    width: min(70vw, 340px);
+    height: 5px;
+    background: rgba(255,204,0,0.12);
+    border-radius:3px;
+    overflow:hidden;
+    margin-top: 26px;
+  }
+  .timer-bar{
+    height:100%;
+    background:var(--yellow);
+    width:100%;
+    transition: width 0.1s linear, background .2s ease;
+  }
+
+  .keypad{
+    display:flex; flex-direction:column; align-items:center;
+    gap: 10px;
+    margin-top: 20px;
+    width: 100%;
+  }
+  .keypad-enter{
+    width: min(78vw, 300px);
+    margin-top: 0;
+    padding: 10px 0;
+    font-size: clamp(14px, 4vw, 18px);
+  }
+  .keypad-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    width: min(78vw, 300px);
+  }
+  .keypad-key{
+    background:transparent;
+    border:none;
+    color: var(--yellow);
+    font-family:inherit;
+    font-weight:100;
+    font-size: clamp(30.4px, 12vw, 104px);
+    line-height:1;
+    padding: 2px 0;
+    border-radius: 14px;
+    cursor:pointer;
+    transition: background .15s ease, transform .08s ease;
+  }
+  .keypad-key:active{ background: rgba(255,204,0,0.15); transform: scale(0.94); }
+  .keypad-zero{ grid-column: 2; }
+
+  @media (max-height: 700px){
+    .keypad{ margin-top:12px; gap:6px; }
+    .keypad-grid{ gap:4px; }
+    .timer-wrap{ margin-top:14px; }
+    .sub-text{ margin-top:10px; }
+  }
+
+  .levelup-toast{
+    position:absolute; top: 22%; left:50%; transform: translate(-50%,-10px);
+    font-size: clamp(14px,4vw,20px);
+    color:var(--red);
+    opacity:0;
+    letter-spacing:2px;
+    pointer-events:none;
+    transition: opacity .3s ease, transform .3s ease;
+    z-index:6;
+  }
+  .levelup-toast.show{ opacity:1; transform: translate(-50%,0); }
+
+  /* Feedback pop layer */
+  .feedback-layer{
+    position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:4;
+  }
+  .pop{
+    position:absolute;
+    font-size: 44px;
+    font-weight:400;
+    animation: popFade 0.85s ease-out forwards;
+  }
+  .pop.ok{ color: var(--yellow); }
+  .pop.bad{ color: var(--red); -webkit-text-stroke: 1px rgba(255,204,0,0.5); }
+  @keyframes popFade{
+    0%{ transform: scale(0.2) translateY(0); opacity:0; }
+    25%{ transform: scale(1.15) translateY(0); opacity:1; }
+    100%{ transform: scale(0.95) translateY(-60px); opacity:0; }
+  }
+
+  /* Game over screen */
+  .final-score{
+    font-size: clamp(50px, 16vw, 100px);
+    color:var(--red);
+    font-weight:100;
+    margin: 6px 0 0 0;
+  }
+  .name-entry{
+    margin-top: 22px;
+    display:flex; gap:8px; align-items:center;
+  }
+  .name-input{
+    font-family:inherit; font-weight:100;
+    background:transparent;
+    border:1.5px solid rgba(255,204,0,0.5);
+    color:var(--yellow);
+    border-radius: 30px;
+    padding: 10px 16px;
+    font-size: clamp(13px,3.6vw,16px);
+    text-align:center;
+    width: 170px;
+    outline:none;
+  }
+  .name-input::placeholder{ color: rgba(255,204,0,0.35); }
+  .saved-msg{ font-size:13px; opacity:0.6; margin-top:10px; height:16px; }
+
+  @media (max-height: 480px){
+    .tagline{ margin-bottom:14px; }
+    .hs-box{ margin-top:16px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="kodak-stripe"></div>
+  <div class="footer-credit">created by Ivan Hrušovský</div>
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="screen-start">
+    <div class="lang-switch">
+      <select class="lang-select" id="lang-select">
+        <option value="sk">Slovenčina</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+    <h1 class="title">QUICKMATH<br><span>TRAINER</span></h1>
+    <p class="tagline" id="tagline">malá aj veľká násobilka a delenie · 10 úrovní · 3 životy</p>
+    <button class="btn" id="btn-start">HRAŤ</button>
+    <button class="btn secondary" id="btn-howto" style="margin-top:12px;">Návod</button>
+    <div class="hs-box">
+      <h2>Highscore</h2>
+      <div id="hs-list"></div>
+    </div>
+  </div>
+
+  <!-- HOWTO SCREEN -->
+  <div class="screen" id="screen-howto">
+    <h1 class="title" id="howto-title">NÁVOD</h1>
+    <p class="howto-text" id="howto-text">Trénuj malú aj veľkú násobilku a delenie. Začínaš s 3 životmi. Za každú správnu sériu 5 výsledkov dostaneš +1 život, za zlú oň prídeš. Tak isto keď si zastavíš hru prichádzaš o -1 život. Čaká ťa 10 úrovní. Dokáž sebe, že zvládni všetky!</p>
+    <button class="btn secondary" id="btn-howto-back">Späť</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="screen" id="screen-game">
+    <div class="hud">
+      <div class="block">
+        <div class="label" id="label-level">úroveň</div>
+        <div class="value" id="hud-level">1</div>
+      </div>
+      <div class="block">
+        <div class="label" id="label-score">skóre</div>
+        <div class="value" id="hud-score">0</div>
+      </div>
+      <div class="block">
+        <div class="hud-controls">
+          <button class="hud-btn" id="btn-pause">Pauza</button>
+          <button class="hud-btn" id="btn-quit">Skončiť</button>
+        </div>
+      </div>
+      <div class="block">
+        <div class="label" id="label-lives">životy</div>
+        <div class="value lives" id="hud-lives">♥ ♥ ♥</div>
+      </div>
+    </div>
+
+    <div class="levelup-toast" id="levelup-toast">ÚROVEŇ 2</div>
+
+    <div class="equation-row">
+      <span class="problem-text" id="problem-text">7 × 8 =</span>
+      <input class="answer-input" id="answer-input" type="text" inputmode="none" pattern="[0-9]*" autocomplete="off" maxlength="4">
+    </div>
+    <div class="sub-text" id="sub-text">napíš výsledok a stlač Enter</div>
+    <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+
+    <div class="keypad">
+      <button class="btn keypad-enter" id="keypad-enter">ENTER</button>
+      <div class="keypad-grid">
+        <button class="keypad-key" data-digit="1">1</button>
+        <button class="keypad-key" data-digit="2">2</button>
+        <button class="keypad-key" data-digit="3">3</button>
+        <button class="keypad-key" data-digit="4">4</button>
+        <button class="keypad-key" data-digit="5">5</button>
+        <button class="keypad-key" data-digit="6">6</button>
+        <button class="keypad-key" data-digit="7">7</button>
+        <button class="keypad-key" data-digit="8">8</button>
+        <button class="keypad-key" data-digit="9">9</button>
+        <button class="keypad-key keypad-zero" data-digit="0">0</button>
+      </div>
+    </div>
+
+    <div class="feedback-layer" id="feedback-layer"></div>
+  </div>
+
+  <!-- GAME OVER SCREEN -->
+  <div class="screen" id="screen-gameover">
+    <h1 class="title" id="gameover-title">KONIEC</h1>
+    <div class="sub-text" id="yourscore-label" style="margin-top:0;">tvoje skóre</div>
+    <div class="final-score" id="final-score">0</div>
+    <div class="sub-text" id="final-level">úroveň 1</div>
+    <div class="name-entry">
+      <input class="name-input" id="name-input" type="text" placeholder="tvoje meno" maxlength="14">
+      <button class="btn secondary" id="btn-save">Uložiť</button>
+    </div>
+    <div class="saved-msg" id="saved-msg"></div>
+    <button class="btn" id="btn-again" style="margin-top:26px;">HRAŤ ZNOVA</button>
+    <button class="btn secondary" id="btn-home" style="margin-top:12px;">Domov</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Config ----------
+  var LEVELS = [
+    {min:1,  max:5},
+    {min:1,  max:10},
+    {min:2,  max:12},
+    {min:3,  max:15},
+    {min:5,  max:18},
+    {min:8,  max:20},
+    {min:10, max:25},
+    {min:12, max:30},
+    {min:15, max:40},
+    {min:20, max:50}
+  ];
+  var THRESHOLDS = [100,200,400,800,1600,3200,6400,12800,25600]; // cumulative score to reach level 2..10
+  var MAX_LEVEL = 10;
+  var START_LIVES = 3;
+  var MAX_LIVES = 5;
+  var TIME_LIMIT_MS = 20000;
+  var HS_KEY = 'nasobilka_arena_highscores_v1';
+  var HS_MAX_ENTRIES = 10;
+  var LANG_KEY = 'quickmath_trainer_lang';
+
+  var STRINGS = {
+    sk: {
+      tagline: 'malá aj veľká násobilka a delenie · 10 úrovní · 3 životy',
+      play: 'HRAŤ',
+      noScores: 'zatiaľ žiadne skóre',
+      level: 'úroveň',
+      score: 'skóre',
+      lives: 'životy',
+      pause: 'Pauza',
+      resume: 'Pokračovať',
+      quit: 'Skončiť',
+      subText: 'napíš výsledok a stlač Enter',
+      levelUp: 'ÚROVEŇ',
+      gameOver: 'KONIEC',
+      yourScore: 'tvoje skóre',
+      namePlaceholder: 'tvoje meno',
+      save: 'Uložiť',
+      saved: 'Uložené ✓',
+      saveFailed: 'Uloženie zlyhalo',
+      playAgain: 'HRAŤ ZNOVA',
+      home: 'Domov',
+      defaultName: 'Hráč',
+      howtoBtn: 'Návod',
+      howtoTitle: 'NÁVOD',
+      howtoText: 'Trénuj malú aj veľkú násobilku a delenie. Začínaš s 3 životmi. Za každú správnu sériu 5 výsledkov dostaneš +1 život, za zlú oň prídeš. Tak isto keď si zastavíš hru prichádzaš o -1 život. Čaká ťa 10 úrovní. Dokáž sebe, že zvládni všetky!',
+      back: 'Späť'
+    },
+    en: {
+      tagline: 'small & large multiplication and division · 10 levels · 3 lives',
+      play: 'PLAY',
+      noScores: 'no scores yet',
+      level: 'level',
+      score: 'score',
+      lives: 'lives',
+      pause: 'Pause',
+      resume: 'Resume',
+      quit: 'Quit',
+      subText: 'type the answer and press Enter',
+      levelUp: 'LEVEL',
+      gameOver: 'GAME OVER',
+      yourScore: 'your score',
+      namePlaceholder: 'your name',
+      save: 'Save',
+      saved: 'Saved ✓',
+      saveFailed: 'Save failed',
+      playAgain: 'PLAY AGAIN',
+      home: 'Home',
+      defaultName: 'Player',
+      howtoBtn: 'How to play',
+      howtoTitle: 'HOW TO PLAY',
+      howtoText: 'Train both small and large multiplication and division. You start with 3 lives. For every correct streak of 5 answers you gain +1 life, a wrong answer costs you one. Likewise, pausing the game costs you -1 life. 10 levels await you. Prove to yourself that you can master them all!',
+      back: 'Back'
+    }
+  };
+
+  // ---------- State ----------
+  var state = {
+    score: 0,
+    level: 1,
+    lives: START_LIVES,
+    streak: 0,
+    active: false,
+    paused: false,
+    current: null,
+    timerInterval: null,
+    timeLeft: TIME_LIMIT_MS,
+    lang: 'sk'
+  };
+
+  // ---------- DOM ----------
+  var screens = {
+    start: document.getElementById('screen-start'),
+    game: document.getElementById('screen-game'),
+    gameover: document.getElementById('screen-gameover'),
+    howto: document.getElementById('screen-howto')
+  };
+  var elProblem = document.getElementById('problem-text');
+  var elInput = document.getElementById('answer-input');
+  var elTimerBar = document.getElementById('timer-bar');
+  var elHudLevel = document.getElementById('hud-level');
+  var elHudScore = document.getElementById('hud-score');
+  var elHudLives = document.getElementById('hud-lives');
+  var elFeedbackLayer = document.getElementById('feedback-layer');
+  var elLevelToast = document.getElementById('levelup-toast');
+  var elFinalScore = document.getElementById('final-score');
+  var elFinalLevel = document.getElementById('final-level');
+  var elNameInput = document.getElementById('name-input');
+  var elSavedMsg = document.getElementById('saved-msg');
+  var elHsList = document.getElementById('hs-list');
+  var btnPause = document.getElementById('btn-pause');
+  var btnQuit = document.getElementById('btn-quit');
+  var btnHome = document.getElementById('btn-home');
+  var btnStart = document.getElementById('btn-start');
+  var btnSave = document.getElementById('btn-save');
+  var btnAgain = document.getElementById('btn-again');
+  var elLangSelect = document.getElementById('lang-select');
+  var elTagline = document.getElementById('tagline');
+  var elLabelLevel = document.getElementById('label-level');
+  var elLabelScore = document.getElementById('label-score');
+  var elLabelLives = document.getElementById('label-lives');
+  var elSubText = document.getElementById('sub-text');
+  var elGameoverTitle = document.getElementById('gameover-title');
+  var elYourScoreLabel = document.getElementById('yourscore-label');
+  var btnHowto = document.getElementById('btn-howto');
+  var btnHowtoBack = document.getElementById('btn-howto-back');
+  var elHowtoTitle = document.getElementById('howto-title');
+  var elHowtoText = document.getElementById('howto-text');
+
+  // ---------- Helpers ----------
+  function t(key){
+    return STRINGS[state.lang][key];
+  }
+
+  function loadLang(){
+    try {
+      var v = localStorage.getItem(LANG_KEY);
+      if (v === 'en' || v === 'sk') return v;
+    } catch(e){}
+    return 'sk';
+  }
+
+  function saveLang(lang){
+    try { localStorage.setItem(LANG_KEY, lang); } catch(e){}
+  }
+
+  function applyLanguage(){
+    document.documentElement.lang = state.lang;
+    elTagline.textContent = t('tagline');
+    btnStart.textContent = t('play');
+    elLabelLevel.textContent = t('level');
+    elLabelScore.textContent = t('score');
+    elLabelLives.textContent = t('lives');
+    btnPause.textContent = state.paused ? t('resume') : t('pause');
+    btnQuit.textContent = t('quit');
+    elSubText.textContent = t('subText');
+    elGameoverTitle.textContent = t('gameOver');
+    elYourScoreLabel.textContent = t('yourScore');
+    elNameInput.placeholder = t('namePlaceholder');
+    btnSave.textContent = t('save');
+    btnAgain.textContent = t('playAgain');
+    btnHome.textContent = t('home');
+    btnHowto.textContent = t('howtoBtn');
+    elHowtoTitle.textContent = t('howtoTitle');
+    elHowtoText.textContent = t('howtoText');
+    btnHowtoBack.textContent = t('back');
+    if (!state.active) {
+      elFinalLevel.textContent = t('level') + ' ' + state.level + ' / ' + MAX_LEVEL;
+    }
+    renderHighscores();
+  }
+
+  function showScreen(name){
+    Object.keys(screens).forEach(function(k){
+      screens[k].classList.toggle('active', k === name);
+    });
+  }
+
+  function randInt(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function getLevelForScore(score){
+    var lvl = 1;
+    for (var i = 0; i < THRESHOLDS.length; i++){
+      if (score >= THRESHOLDS[i]) lvl = i + 2;
+    }
+    return Math.min(lvl, MAX_LEVEL);
+  }
+
+  function loadHighscores(){
+    try {
+      var raw = localStorage.getItem(HS_KEY);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed;
+    } catch(e){
+      return [];
+    }
+  }
+
+  function saveHighscore(name, score){
+    try {
+      var list = loadHighscores();
+      list.push({ name: name, score: score });
+      list.sort(function(a,b){ return b.score - a.score; });
+      list = list.slice(0, HS_MAX_ENTRIES);
+      localStorage.setItem(HS_KEY, JSON.stringify(list));
+      return true;
+    } catch(e){
+      return false;
+    }
+  }
+
+  function renderHighscores(){
+    var list = loadHighscores();
+    elHsList.innerHTML = '';
+    if (list.length === 0){
+      var empty = document.createElement('div');
+      empty.className = 'hs-empty';
+      empty.textContent = t('noScores');
+      elHsList.appendChild(empty);
+      return;
+    }
+    list.forEach(function(entry){
+      var row = document.createElement('div');
+      row.className = 'hs-row';
+      var n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = entry.name;
+      var s = document.createElement('span');
+      s.className = 's';
+      s.textContent = entry.score;
+      row.appendChild(n);
+      row.appendChild(s);
+      elHsList.appendChild(row);
+    });
+  }
+
+  function renderHud(){
+    elHudLevel.textContent = state.level + '/' + MAX_LEVEL;
+    elHudScore.textContent = state.score;
+    var hearts = '';
+    for (var i = 0; i < MAX_LIVES; i++){
+      if (i < state.lives) hearts += '♥ ';
+      else hearts += '<span class="empty">♥</span> ';
+    }
+    elHudLives.innerHTML = hearts.trim();
+  }
+
+  function generateProblem(level){
+    var range = LEVELS[level - 1];
+    var isDivision = Math.random() < 0.5;
+    if (!isDivision){
+      var a = randInt(range.min, range.max);
+      var b = randInt(range.min, range.max);
+      return {
+        text: a + ' × ' + b + ' =',
+        answer: a * b,
+        points: Math.max(a, b)
+      };
+    } else {
+      var divisor = randInt(range.min, range.max);
+      var quotient = randInt(range.min, range.max);
+      var dividend = divisor * quotient;
+      return {
+        text: dividend + ' ÷ ' + divisor + ' =',
+        answer: quotient,
+        points: Math.max(dividend, divisor)
+      };
+    }
+  }
+
+  function spawnPops(kind){
+    var count = kind === 'ok' ? 5 : 4;
+    var char = kind === 'ok' ? '✓' : '✕';
+    for (var i = 0; i < count; i++){
+      (function(i){
+        setTimeout(function(){
+          var span = document.createElement('span');
+          span.className = 'pop ' + kind;
+          span.textContent = char;
+          var x = 15 + Math.random() * 70;
+          var y = 25 + Math.random() * 45;
+          span.style.left = x + '%';
+          span.style.top = y + '%';
+          span.style.fontSize = (30 + Math.random() * 30) + 'px';
+          elFeedbackLayer.appendChild(span);
+          setTimeout(function(){
+            if (span.parentNode) span.parentNode.removeChild(span);
+          }, 900);
+        }, i * 60);
+      })(i);
+    }
+  }
+
+  function flashLevelUp(){
+    elLevelToast.textContent = t('levelUp') + ' ' + state.level;
+    elLevelToast.classList.add('show');
+    setTimeout(function(){
+      elLevelToast.classList.remove('show');
+    }, 1100);
+  }
+
+  function tickTimer(){
+    state.timeLeft -= 100;
+    var pct = Math.max(0, (state.timeLeft / TIME_LIMIT_MS) * 100);
+    elTimerBar.style.width = pct + '%';
+    if (state.timeLeft <= 4000) elTimerBar.style.background = 'var(--red)';
+    if (state.timeLeft <= 0){
+      clearInterval(state.timerInterval);
+      resolveAnswer(elInput.value.trim()); // correct value already typed still counts as success
+    }
+  }
+
+  function startTimer(){
+    state.timeLeft = TIME_LIMIT_MS;
+    elTimerBar.style.width = '100%';
+    elTimerBar.style.background = 'var(--yellow)';
+    clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(tickTimer, 100);
+  }
+
+  function resumeTimer(){
+    clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(tickTimer, 100);
+  }
+
+  function togglePause(){
+    if (!state.active) return;
+    state.paused = !state.paused;
+    if (state.paused){
+      clearInterval(state.timerInterval);
+      elInput.disabled = true;
+      state.lives--;
+      renderHud();
+      if (state.lives <= 0){
+        endGame();
+        return;
+      }
+      btnPause.textContent = t('resume');
+    } else {
+      elInput.disabled = false;
+      btnPause.textContent = t('pause');
+      resumeTimer();
+      elInput.focus();
+    }
+  }
+
+  function quitGame(){
+    if (!state.active) return;
+    clearInterval(state.timerInterval);
+    endGame();
+  }
+
+  function nextProblem(){
+    if (!state.active) return;
+    state.level = getLevelForScore(state.score);
+    state.current = generateProblem(state.level);
+    elProblem.textContent = state.current.text;
+    elInput.value = '';
+    elInput.classList.remove('reveal');
+    elInput.disabled = false;
+    renderHud();
+    startTimer();
+    setTimeout(function(){ elInput.focus(); }, 30);
+  }
+
+  function resolveAnswer(rawValue){
+    if (!state.active) return;
+    clearInterval(state.timerInterval);
+    elInput.disabled = true;
+
+    var userVal = rawValue === null ? NaN : parseInt(rawValue, 10);
+    var correct = !isNaN(userVal) && userVal === state.current.answer;
+    var prevLevel = state.level;
+
+    if (correct){
+      state.score += state.current.points;
+      state.streak++;
+      spawnPops('ok');
+      if (state.streak > 0 && state.streak % 5 === 0 && state.lives < MAX_LIVES){
+        state.lives++;
+      }
+    } else {
+      state.lives--;
+      state.streak = 0;
+      spawnPops('bad');
+      elInput.value = state.current.answer;
+      elInput.classList.add('reveal');
+    }
+
+    state.level = getLevelForScore(state.score);
+    renderHud();
+
+    if (state.level > prevLevel){
+      flashLevelUp();
+    }
+
+    if (state.lives <= 0){
+      setTimeout(endGame, 700);
+    } else {
+      setTimeout(nextProblem, 850);
+    }
+  }
+
+  function startGame(){
+    state.score = 0;
+    state.level = 1;
+    state.lives = START_LIVES;
+    state.streak = 0;
+    state.active = true;
+    state.paused = false;
+    btnPause.textContent = t('pause');
+    showScreen('game');
+    renderHud();
+    nextProblem();
+  }
+
+  function endGame(){
+    state.active = false;
+    clearInterval(state.timerInterval);
+    elFinalScore.textContent = state.score;
+    elFinalLevel.textContent = t('level') + ' ' + state.level + ' / ' + MAX_LEVEL;
+    elNameInput.value = '';
+    elSavedMsg.textContent = '';
+    showScreen('gameover');
+  }
+
+  // ---------- Events ----------
+  btnStart.addEventListener('click', startGame);
+  btnAgain.addEventListener('click', startGame);
+  btnPause.addEventListener('click', togglePause);
+  btnQuit.addEventListener('click', quitGame);
+  btnHome.addEventListener('click', function(){
+    renderHighscores();
+    showScreen('start');
+  });
+  btnHowto.addEventListener('click', function(){ showScreen('howto'); });
+  btnHowtoBack.addEventListener('click', function(){ showScreen('start'); });
+
+  function submitAnswer(){
+    if (elInput.value.trim() !== '' && !elInput.disabled){
+      resolveAnswer(elInput.value.trim());
+    }
+  }
+
+  function appendDigit(digit){
+    if (elInput.disabled) return;
+    if (elInput.value.length >= 4) return;
+    elInput.value += digit;
+  }
+
+  elInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){
+      e.preventDefault();
+      submitAnswer();
+    }
+  });
+
+  elInput.addEventListener('input', function(){
+    elInput.value = elInput.value.replace(/[^0-9]/g, '');
+  });
+
+  document.getElementById('keypad-enter').addEventListener('click', submitAnswer);
+
+  document.querySelectorAll('.keypad-key').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      appendDigit(btn.dataset.digit);
+    });
+  });
+
+  btnSave.addEventListener('click', function(){
+    var name = elNameInput.value.trim() || t('defaultName');
+    var ok = saveHighscore(name, parseInt(elFinalScore.textContent, 10));
+    elSavedMsg.textContent = ok ? t('saved') : t('saveFailed');
+    renderHighscores();
+  });
+
+  elLangSelect.addEventListener('change', function(){
+    state.lang = elLangSelect.value;
+    saveLang(state.lang);
+    applyLanguage();
+  });
+
+  // ---------- Init ----------
+  state.lang = loadLang();
+  elLangSelect.value = state.lang;
+  applyLanguage();
+  showScreen('start');
+})();
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
