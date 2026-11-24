@@ -35,7 +35,7 @@
         "players": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid",
-            ".validate": "newData.hasChildren(['name']) && newData.parent().numChildren() <= 8 && (data.exists() || root.child('rooms').child($code).child('state').val() === 'lobby')",
+            ".validate": "newData.hasChildren(['name']) && newData.parent().numChildren() <= 8 && (data.exists() || newData.parent().parent().child('state').val() === 'lobby')",
             "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 14" },
             "joinedAt": { ".validate": "newData.isNumber()" },
             "$other": { ".validate": false }
