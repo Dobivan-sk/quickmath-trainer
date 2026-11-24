@@ -305,6 +305,7 @@
     outline:none;
   }
   .name-input::placeholder{ color: rgba(255,204,0,0.35); }
+  .name-entry .btn{ margin-top:0; }
   .saved-msg{ font-size:13px; opacity:0.6; margin-top:10px; height:16px; }
 
   @media (max-height: 480px){
@@ -320,11 +321,25 @@
   }
   .mp-or{ font-size:13px; opacity:0.5; margin:14px 0 4px; letter-spacing:1px; }
   .mp-code{
-    font-size: clamp(40px, 14vw, 72px);
+    font-size: clamp(30px, 9vw, 48px);
     letter-spacing: 0.12em;
     color: var(--red);
-    margin: 2px 0 8px 0.12em;
+    margin: 2px 0 6px 0.12em;
     line-height:1;
+  }
+  .mp-share{ display:flex; align-items:center; gap:14px; margin-bottom:8px; }
+  .mp-qr{
+    width:112px; height:112px; flex:none;
+    border-radius:12px; overflow:hidden;
+    background: var(--yellow);
+  }
+  .mp-qr svg{ display:block; width:100%; height:100%; }
+  .mp-share-info{ display:flex; flex-direction:column; align-items:center; }
+  #screen-mp-lobby .mp-share-btn{
+    padding: 7px 14px;
+    font-size: clamp(12px, 3.3vw, 14px);
+    margin-top: 6px;
+    letter-spacing: 1px;
   }
   .mp-dur{ display:flex; gap:8px; margin: 6px 0 10px; }
   .mp-dur-btn{
@@ -502,9 +517,15 @@
   <!-- MULTIPLAYER: LOBBY -->
   <div class="screen" id="screen-mp-lobby">
     <div class="mp-inner">
-      <div class="sub-text" style="margin-top:0;" data-i18n="mpRoomCode">kód miestnosti</div>
-      <div class="mp-code" id="mp-room-code">----</div>
-      <button class="btn secondary" id="mp-copy" data-i18n="mpCopy">Kopírovať odkaz</button>
+      <div class="mp-share">
+        <div class="mp-qr" id="mp-qr"></div>
+        <div class="mp-share-info">
+          <div class="sub-text" style="margin-top:0;" data-i18n="mpRoomCode">kód miestnosti</div>
+          <div class="mp-code" id="mp-room-code">----</div>
+          <button class="btn secondary mp-share-btn" id="mp-share" data-i18n="mpShare">Zdieľať</button>
+          <button class="btn secondary mp-share-btn" id="mp-copy" data-i18n="mpCopy">Kopírovať odkaz</button>
+        </div>
+      </div>
       <div class="sub-text" data-i18n="mpDuration">dĺžka hry</div>
       <div class="mp-dur" id="mp-dur">
         <button class="mp-dur-btn" data-sec="60">1:00</button>
@@ -618,6 +639,8 @@
       mpRoomCode: 'kód miestnosti',
       mpCopy: 'Kopírovať odkaz',
       mpCopied: 'Skopírované ✓',
+      mpShare: 'Zdieľať',
+      mpShareText: 'Pridaj sa ku mne do hry QuickMath Trainer! Kód miestnosti: ',
       mpDuration: 'dĺžka hry',
       mpPlayers: 'hráči',
       mpHost: 'zakladateľ',
@@ -670,6 +693,8 @@
       mpRoomCode: 'room code',
       mpCopy: 'Copy link',
       mpCopied: 'Copied ✓',
+      mpShare: 'Share',
+      mpShareText: 'Join me in QuickMath Trainer! Room code: ',
       mpDuration: 'game length',
       mpPlayers: 'players',
       mpHost: 'host',
@@ -1301,6 +1326,7 @@
     document.getElementById('mp-room-code').textContent = code;
     showScreen('mpLobby');
     renderLobby();
+    renderQr();
   }
 
   function mpPublishPlayer(){
@@ -1605,18 +1631,77 @@
 
   function mpRefOf(m, sub){ return m.f.ref(m.fb.db, roomPath(m.code, sub)); }
 
+  function mpInviteUrl(){
+    return location.origin + location.pathname + '?room=' + mp.code;
+  }
+
+  var qrLoading = null;
+  function loadQrLib(){
+    if (window.qrcode) return Promise.resolve();
+    if (qrLoading) return qrLoading;
+    qrLoading = new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = 'qrcode.js';
+      s.onload = resolve;
+      s.onerror = function(){ qrLoading = null; reject(new Error('qr lib')); };
+      document.head.appendChild(s);
+    });
+    return qrLoading;
+  }
+
+  // Dark modules on the brand-yellow background; drawn as one SVG path so it stays crisp at any size.
+  function renderQr(){
+    if (!mp) return;
+    var url = mpInviteUrl();
+    if (mp.qrUrl === url) return;
+    loadQrLib().then(function(){
+      if (!mp || mpInviteUrl() !== url) return;
+      var qr = window.qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      var n = qr.getModuleCount();
+      var quiet = 3;
+      var size = n + quiet * 2;
+      var d = '';
+      for (var r = 0; r < n; r++){
+        for (var c = 0; c < n; c++){
+          if (qr.isDark(r, c)) d += 'M' + (c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
+        }
+      }
+      document.getElementById('mp-qr').style.display = '';
+      document.getElementById('mp-qr').innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '" shape-rendering="crispEdges">' +
+        '<rect width="' + size + '" height="' + size + '" fill="#FFCC00"/><path d="' + d + '" fill="#000"/></svg>';
+      mp.qrUrl = url;
+    }).catch(function(){
+      document.getElementById('mp-qr').style.display = 'none';
+    });
+  }
+
   function mpCopyLink(){
     if (!mp) return;
-    var url = location.origin + location.pathname + '?room=' + mp.code;
     var btn = document.getElementById('mp-copy');
     var done = function(){
       btn.textContent = t('mpCopied');
       setTimeout(function(){ btn.textContent = t('mpCopy'); }, 1500);
     };
     if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(url).then(done).catch(function(){});
-    } else if (navigator.share){
-      navigator.share({ url: url, title: 'QuickMath Trainer' }).catch(function(){});
+      navigator.clipboard.writeText(mpInviteUrl()).then(done).catch(function(){});
+    }
+  }
+
+  // Native share sheet (Messages, WhatsApp, social apps); falls back to copying the link where it is unavailable.
+  function mpShareLink(){
+    if (!mp) return;
+    if (navigator.share){
+      navigator.share({
+        title: 'QuickMath Trainer',
+        text: t('mpShareText') + mp.code,
+        url: mpInviteUrl()
+      }).catch(function(){});
+      track('mp-share');
+    } else {
+      mpCopyLink();
     }
   }
 
@@ -1625,6 +1710,7 @@
   document.getElementById('mp-create').addEventListener('click', mpCreate);
   document.getElementById('mp-join').addEventListener('click', mpJoin);
   document.getElementById('mp-copy').addEventListener('click', mpCopyLink);
+  document.getElementById('mp-share').addEventListener('click', mpShareLink);
   document.getElementById('mp-start').addEventListener('click', mpStart);
   document.getElementById('mp-leave').addEventListener('click', mpLeave);
   document.getElementById('mp-next').addEventListener('click', mpNext);
