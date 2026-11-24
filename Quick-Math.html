@@ -311,6 +311,77 @@
     .tagline{ margin-bottom:14px; }
     .hs-box{ margin-top:16px; }
   }
+
+  /* Multiplayer */
+  .mp-inner{
+    margin: auto 0;
+    width:100%;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .mp-or{ font-size:13px; opacity:0.5; margin:14px 0 4px; letter-spacing:1px; }
+  .mp-code{
+    font-size: clamp(40px, 14vw, 72px);
+    letter-spacing: 0.12em;
+    color: var(--red);
+    margin: 2px 0 8px 0.12em;
+    line-height:1;
+  }
+  .mp-dur{ display:flex; gap:8px; margin: 6px 0 10px; }
+  .mp-dur-btn{
+    background:transparent;
+    border:1.5px solid rgba(255,204,0,0.4);
+    color: rgba(255,204,0,0.8);
+    font-family:inherit; font-weight:100;
+    font-size: clamp(14px,3.8vw,18px);
+    padding: 8px 16px;
+    border-radius: 24px;
+    cursor:pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  .mp-dur-btn.selected{ border-color: var(--yellow); background: var(--yellow); color:#000; }
+  .mp-dur.locked .mp-dur-btn{ pointer-events:none; }
+  .mp-list{ width:100%; max-width:300px; margin: 4px 0 10px; }
+  .mp-row{
+    display:flex; align-items:baseline; gap:10px;
+    font-size: clamp(14px,3.8vw,18px);
+    padding: 4px 4px;
+    border-bottom: 1px solid rgba(255,204,0,0.12);
+    text-align:left;
+  }
+  .mp-row .r{ width:1.6em; opacity:0.5; }
+  .mp-row .n{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mp-row .s{ color: var(--red); }
+  .mp-row .tag{ font-size:0.7em; opacity:0.5; margin-left:6px; letter-spacing:1px; }
+  .mp-row.me .n{ color: var(--yellow); }
+  .mp-row.pending{ opacity:0.55; }
+  #screen-mp-lobby .btn, #screen-mp-results .btn{ margin-top:8px; }
+  #screen-mp-lobby, #screen-mp-results, #screen-mp-menu{ padding-bottom: 36px; }
+  .mp-row{ padding: 3px 4px; }
+
+  .mp-timer{
+    display:none;
+    font-size: clamp(26px, 8vw, 44px);
+    letter-spacing: 3px;
+    color: var(--yellow);
+    margin-bottom: 4px;
+  }
+  .mp-timer.low{ color: var(--red); }
+  #screen-game.mp .mp-timer{ display:block; }
+  #screen-game.mp .block-controls, #screen-game.mp .block-lives, #screen-game.mp .timer-wrap{ display:none; }
+
+  .bonus-pop{
+    position:absolute; left:50%; top:30%;
+    font-size: clamp(18px, 5.5vw, 26px);
+    letter-spacing: 1px;
+    color: var(--yellow);
+    white-space:nowrap;
+    animation: bonusFade 1.1s ease-out forwards;
+  }
+  @keyframes bonusFade{
+    0%{ transform: translate(-50%, 10px) scale(0.6); opacity:0; }
+    20%{ transform: translate(-50%, 0) scale(1.1); opacity:1; }
+    100%{ transform: translate(-50%, -40px) scale(1); opacity:0; }
+  }
 </style>
 </head>
 <body>
@@ -328,6 +399,7 @@
     <h1 class="title">QUICKMATH<br><span>TRAINER</span></h1>
     <p class="tagline" id="tagline">malá aj veľká násobilka a delenie · 10 úrovní · 3 životy</p>
     <button class="btn" id="btn-start">HRAŤ</button>
+    <button class="btn secondary" id="btn-mp" style="margin-top:12px;" data-i18n="mpBtn">Multiplayer</button>
     <button class="btn secondary" id="btn-howto" style="margin-top:12px;">Návod</button>
     <div class="hs-box">
       <h2>Highscore</h2>
@@ -353,19 +425,21 @@
         <div class="label" id="label-score">skóre</div>
         <div class="value" id="hud-score">0</div>
       </div>
-      <div class="block">
+      <div class="block block-controls">
         <div class="hud-controls">
           <button class="hud-btn" id="btn-pause">Pauza</button>
           <button class="hud-btn" id="btn-quit">Skončiť</button>
         </div>
       </div>
-      <div class="block">
+      <div class="block block-lives">
         <div class="label" id="label-lives">životy</div>
         <div class="value lives" id="hud-lives">♥ ♥ ♥</div>
       </div>
     </div>
 
     <div class="levelup-toast" id="levelup-toast">ÚROVEŇ 2</div>
+
+    <div class="mp-timer" id="mp-timer">1:00</div>
 
     <div class="equation-row">
       <span class="problem-text" id="problem-text">7 × 8 =</span>
@@ -408,6 +482,53 @@
     <button class="btn" id="btn-again" style="margin-top:26px;">HRAŤ ZNOVA</button>
     <button class="btn secondary" id="btn-home" style="margin-top:12px;">Domov</button>
   </div>
+
+  <!-- MULTIPLAYER: MENU -->
+  <div class="screen" id="screen-mp-menu">
+    <div class="mp-inner">
+      <h1 class="title" data-i18n="mpTitle">MULTIPLAYER</h1>
+      <input class="name-input" id="mp-name" type="text" maxlength="14" data-i18n-ph="namePlaceholder" placeholder="tvoje meno" style="margin-top:14px;">
+      <button class="btn" id="mp-create" style="margin-top:18px;" data-i18n="mpCreate">Vytvoriť miestnosť</button>
+      <div class="mp-or" data-i18n="mpOr">alebo</div>
+      <div class="name-entry" style="margin-top:6px;">
+        <input class="name-input" id="mp-code" type="text" maxlength="4" autocapitalize="characters" autocomplete="off" data-i18n-ph="mpCodePh" placeholder="kód" style="width:110px; text-transform:uppercase; letter-spacing:4px;">
+        <button class="btn secondary" id="mp-join" data-i18n="mpJoin">Pripojiť sa</button>
+      </div>
+      <div class="saved-msg" id="mp-msg"></div>
+      <button class="btn secondary" id="mp-menu-back" style="margin-top:10px;" data-i18n="back">Späť</button>
+    </div>
+  </div>
+
+  <!-- MULTIPLAYER: LOBBY -->
+  <div class="screen" id="screen-mp-lobby">
+    <div class="mp-inner">
+      <div class="sub-text" style="margin-top:0;" data-i18n="mpRoomCode">kód miestnosti</div>
+      <div class="mp-code" id="mp-room-code">----</div>
+      <button class="btn secondary" id="mp-copy" data-i18n="mpCopy">Kopírovať odkaz</button>
+      <div class="sub-text" data-i18n="mpDuration">dĺžka hry</div>
+      <div class="mp-dur" id="mp-dur">
+        <button class="mp-dur-btn" data-sec="60">1:00</button>
+        <button class="mp-dur-btn" data-sec="120">2:00</button>
+        <button class="mp-dur-btn" data-sec="300">5:00</button>
+      </div>
+      <div class="sub-text" id="mp-players-label" style="margin-top:4px;">hráči</div>
+      <div class="mp-list" id="mp-players"></div>
+      <button class="btn" id="mp-start" data-i18n="mpStart">ŠTART</button>
+      <div class="sub-text" id="mp-wait" data-i18n="mpWaitHost">čakáme, kým zakladateľ spustí hru…</div>
+      <button class="btn secondary" id="mp-leave" data-i18n="mpLeave">Opustiť</button>
+    </div>
+  </div>
+
+  <!-- MULTIPLAYER: RESULTS -->
+  <div class="screen" id="screen-mp-results">
+    <div class="mp-inner">
+      <h1 class="title" data-i18n="mpResults">VÝSLEDKY</h1>
+      <div class="mp-list" id="mp-results"></div>
+      <button class="btn" id="mp-next" data-i18n="mpNext">ĎALŠIE KOLO</button>
+      <div class="sub-text" id="mp-next-wait" data-i18n="mpWaitNext">čakáme na zakladateľa…</div>
+      <button class="btn secondary" id="mp-results-leave" data-i18n="mpLeave">Opustiť</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -435,6 +556,26 @@
   var HS_KEY = 'nasobilka_arena_highscores_v1';
   var HS_MAX_ENTRIES = 10;
   var LANG_KEY = 'quickmath_trainer_lang';
+  var NAME_KEY = 'quickmath_trainer_name';
+
+  // Multiplayer config. Firebase web config is public by design; access is protected by database.rules.json.
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyB4l1IGNY4pFVOQxdljdkTG-E3fze6uQj4",
+    authDomain: "quickmath-multiplayer.firebaseapp.com",
+    databaseURL: "https://quickmath-multiplayer-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "quickmath-multiplayer",
+    storageBucket: "quickmath-multiplayer.firebasestorage.app",
+    messagingSenderId: "802297871108",
+    appId: "1:802297871108:web:efcf9d90cef16261ac6e51"
+  };
+  var FIREBASE_VERSION = '10.14.1';
+  var GOATCOUNTER_CODE = ''; // e.g. 'quickmath' -> https://quickmath.goatcounter.com
+  var MP_MAX_PLAYERS = 8;
+  var MP_COUNTDOWN_MS = 3000;
+  var MP_FEEDBACK_MS = 700;
+  var MP_QUESTIONS_PER_LEVEL = 5;
+  var MP_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var MP_BONUS = [ { maxMs: 5000, pct: 20 }, { maxMs: 10000, pct: 10 } ]; // faster answer = bigger bonus
 
   var STRINGS = {
     sk: {
@@ -461,7 +602,33 @@
       howtoBtn: 'Návod',
       howtoTitle: 'NÁVOD',
       howtoText: 'Trénuj malú aj veľkú násobilku a delenie. Začínaš s 3 životmi. Za každú správnu sériu 5 výsledkov dostaneš +1 život, za zlú oň prídeš. Tak isto keď si zastavíš hru prichádzaš o -1 život. Čaká ťa 10 úrovní. Dokáž sebe, že zvládni všetky!',
-      back: 'Späť'
+      back: 'Späť',
+      mpBtn: 'Multiplayer',
+      mpTitle: 'MULTIPLAYER',
+      mpCreate: 'Vytvoriť miestnosť',
+      mpOr: 'alebo',
+      mpCodePh: 'kód',
+      mpJoin: 'Pripojiť sa',
+      mpConnecting: 'Pripájam sa…',
+      mpFail: 'Online hra nie je dostupná',
+      mpNotFound: 'Miestnosť neexistuje',
+      mpFull: 'Miestnosť je plná',
+      mpStarted: 'Hra už beží',
+      mpRoomClosed: 'Miestnosť zanikla',
+      mpRoomCode: 'kód miestnosti',
+      mpCopy: 'Kopírovať odkaz',
+      mpCopied: 'Skopírované ✓',
+      mpDuration: 'dĺžka hry',
+      mpPlayers: 'hráči',
+      mpHost: 'zakladateľ',
+      mpYou: 'ty',
+      mpStart: 'ŠTART',
+      mpWaitHost: 'čakáme, kým zakladateľ spustí hru…',
+      mpLeave: 'Opustiť',
+      mpResults: 'VÝSLEDKY',
+      mpNext: 'ĎALŠIE KOLO',
+      mpWaitNext: 'čakáme na zakladateľa…',
+      mpHostLeft: 'zakladateľ odišiel'
     },
     en: {
       tagline: 'small & large multiplication and division · 10 levels · 3 lives',
@@ -487,7 +654,33 @@
       howtoBtn: 'How to play',
       howtoTitle: 'HOW TO PLAY',
       howtoText: 'Train both small and large multiplication and division. You start with 3 lives. For every correct streak of 5 answers you gain +1 life, a wrong answer costs you one. Likewise, pausing the game costs you -1 life. 10 levels await you. Prove to yourself that you can master them all!',
-      back: 'Back'
+      back: 'Back',
+      mpBtn: 'Multiplayer',
+      mpTitle: 'MULTIPLAYER',
+      mpCreate: 'Create room',
+      mpOr: 'or',
+      mpCodePh: 'code',
+      mpJoin: 'Join',
+      mpConnecting: 'Connecting…',
+      mpFail: 'Online play is unavailable',
+      mpNotFound: 'Room not found',
+      mpFull: 'Room is full',
+      mpStarted: 'Game already started',
+      mpRoomClosed: 'Room closed',
+      mpRoomCode: 'room code',
+      mpCopy: 'Copy link',
+      mpCopied: 'Copied ✓',
+      mpDuration: 'game length',
+      mpPlayers: 'players',
+      mpHost: 'host',
+      mpYou: 'you',
+      mpStart: 'START',
+      mpWaitHost: 'waiting for the host to start…',
+      mpLeave: 'Leave',
+      mpResults: 'RESULTS',
+      mpNext: 'NEXT ROUND',
+      mpWaitNext: 'waiting for the host…',
+      mpHostLeft: 'the host left'
     }
   };
 
@@ -502,7 +695,8 @@
     current: null,
     timerInterval: null,
     timeLeft: TIME_LIMIT_MS,
-    lang: 'sk'
+    lang: 'sk',
+    mode: 'solo'
   };
 
   // ---------- DOM ----------
@@ -510,7 +704,10 @@
     start: document.getElementById('screen-start'),
     game: document.getElementById('screen-game'),
     gameover: document.getElementById('screen-gameover'),
-    howto: document.getElementById('screen-howto')
+    howto: document.getElementById('screen-howto'),
+    mpMenu: document.getElementById('screen-mp-menu'),
+    mpLobby: document.getElementById('screen-mp-lobby'),
+    mpResults: document.getElementById('screen-mp-results')
   };
   var elProblem = document.getElementById('problem-text');
   var elInput = document.getElementById('answer-input');
@@ -581,10 +778,17 @@
     elHowtoTitle.textContent = t('howtoTitle');
     elHowtoText.textContent = t('howtoText');
     btnHowtoBack.textContent = t('back');
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+      el.placeholder = t(el.getAttribute('data-i18n-ph'));
+    });
     if (!state.active) {
       elFinalLevel.textContent = t('level') + ' ' + state.level + ' / ' + MAX_LEVEL;
     }
     renderHighscores();
+    mpRefreshText();
   }
 
   function showScreen(name){
@@ -593,8 +797,27 @@
     });
   }
 
-  function randInt(min, max){
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  function randInt(min, max, rng){
+    return Math.floor((rng || Math.random)() * (max - min + 1)) + min;
+  }
+
+  // Deterministic PRNG: the same seed gives every player the same sequence.
+  function mulberry32(seed){
+    var a = seed >>> 0;
+    return function(){
+      a = (a + 0x6D2B79F5) >>> 0;
+      var x = Math.imul(a ^ (a >>> 15), 1 | a);
+      x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function track(path){
+    try {
+      if (window.goatcounter && window.goatcounter.count) {
+        window.goatcounter.count({ path: path, title: path, event: true });
+      }
+    } catch(e){}
   }
 
   function getLevelForScore(score){
@@ -666,20 +889,20 @@
     elHudLives.innerHTML = hearts.trim();
   }
 
-  function generateProblem(level){
+  function generateProblem(level, rng){
     var range = LEVELS[level - 1];
-    var isDivision = Math.random() < 0.5;
+    var isDivision = (rng || Math.random)() < 0.5;
     if (!isDivision){
-      var a = randInt(range.min, range.max);
-      var b = randInt(range.min, range.max);
+      var a = randInt(range.min, range.max, rng);
+      var b = randInt(range.min, range.max, rng);
       return {
         text: a + ' × ' + b + ' =',
         answer: a * b,
         points: Math.max(a, b)
       };
     } else {
-      var divisor = randInt(range.min, range.max);
-      var quotient = randInt(range.min, range.max);
+      var divisor = randInt(range.min, range.max, rng);
+      var quotient = randInt(range.min, range.max, rng);
       var dividend = divisor * quotient;
       return {
         text: dividend + ' ÷ ' + divisor + ' =',
@@ -710,6 +933,16 @@
         }, i * 60);
       })(i);
     }
+  }
+
+  function spawnBonus(pct){
+    var span = document.createElement('span');
+    span.className = 'bonus-pop';
+    span.textContent = '+' + pct + '% score';
+    elFeedbackLayer.appendChild(span);
+    setTimeout(function(){
+      if (span.parentNode) span.parentNode.removeChild(span);
+    }, 1200);
   }
 
   function flashLevelUp(){
@@ -745,7 +978,7 @@
   }
 
   function togglePause(){
-    if (!state.active) return;
+    if (!state.active || state.mode === 'mp') return;
     state.paused = !state.paused;
     if (state.paused){
       clearInterval(state.timerInterval);
@@ -766,12 +999,13 @@
   }
 
   function quitGame(){
-    if (!state.active) return;
+    if (!state.active || state.mode === 'mp') return;
     clearInterval(state.timerInterval);
     endGame();
   }
 
   function nextProblem(){
+    if (state.mode === 'mp') { nextProblemMp(); return; }
     if (!state.active) return;
     state.level = getLevelForScore(state.score);
     state.current = generateProblem(state.level);
@@ -785,6 +1019,7 @@
   }
 
   function resolveAnswer(rawValue){
+    if (state.mode === 'mp') { resolveAnswerMp(rawValue); return; }
     if (!state.active) return;
     clearInterval(state.timerInterval);
     elInput.disabled = true;
@@ -823,6 +1058,9 @@
   }
 
   function startGame(){
+    state.mode = 'solo';
+    screens.game.classList.remove('mp');
+    track('solo-start');
     state.score = 0;
     state.level = 1;
     state.lives = START_LIVES;
@@ -914,11 +1152,481 @@
     applyLanguage();
   });
 
+  // ---------- Multiplayer ----------
+  var elMpName = document.getElementById('mp-name');
+  var elMpCode = document.getElementById('mp-code');
+  var elMpMsg = document.getElementById('mp-msg');
+  var elMpTimer = document.getElementById('mp-timer');
+  var fbPromise = null;
+  var serverOffset = 0;
+  var mp = null;
+
+  function serverNow(){ return Date.now() + serverOffset; }
+
+  function withTimeout(promise, ms){
+    return new Promise(function(resolve, reject){
+      var timer = setTimeout(function(){ reject(new Error('timeout')); }, ms);
+      promise.then(function(v){ clearTimeout(timer); resolve(v); },
+                   function(e){ clearTimeout(timer); reject(e); });
+    });
+  }
+
+  function setMpMsg(text){ elMpMsg.textContent = text || ''; }
+
+  function randomCode(){
+    var s = '';
+    for (var i = 0; i < 4; i++) s += MP_CODE_CHARS.charAt(Math.floor(Math.random() * MP_CODE_CHARS.length));
+    return s;
+  }
+
+  function getMpName(){
+    var name = elMpName.value.trim().slice(0, 14) || (t('defaultName') + ' ' + (1 + Math.floor(Math.random() * 99)));
+    try { localStorage.setItem(NAME_KEY, elMpName.value.trim().slice(0, 14)); } catch(e){}
+    return name;
+  }
+
+  function loadFirebase(){
+    if (fbPromise) return fbPromise;
+    var base = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VERSION + '/';
+    fbPromise = Promise.all([
+      import(base + 'firebase-app.js'),
+      import(base + 'firebase-auth.js'),
+      import(base + 'firebase-database.js')
+    ]).then(function(mods){
+      var authM = mods[1], f = mods[2];
+      var app = mods[0].initializeApp(FIREBASE_CONFIG);
+      var auth = authM.getAuth(app);
+      var db = f.getDatabase(app);
+      f.onValue(f.ref(db, '.info/serverTimeOffset'), function(s){ serverOffset = s.val() || 0; });
+      return new Promise(function(resolve, reject){
+        var off = authM.onAuthStateChanged(auth, function(user){
+          if (user){ off(); resolve({ db: db, f: f, uid: user.uid }); }
+        });
+        authM.signInAnonymously(auth).catch(reject);
+      });
+    });
+    fbPromise.catch(function(){ fbPromise = null; });
+    return fbPromise;
+  }
+
+  function roomPath(code, sub){ return 'rooms/' + code + (sub ? '/' + sub : ''); }
+  function mpRef(sub){ return mp.f.ref(mp.fb.db, roomPath(mp.code, sub)); }
+
+  function openMpMenu(code){
+    try { elMpName.value = localStorage.getItem(NAME_KEY) || ''; } catch(e){}
+    if (code) elMpCode.value = code;
+    setMpMsg('');
+    showScreen('mpMenu');
+    loadFirebase().catch(function(){});
+  }
+
+  async function mpCreate(){
+    var name = getMpName();
+    setMpMsg(t('mpConnecting'));
+    var fb;
+    try { fb = await withTimeout(loadFirebase(), 10000); } catch(e){ setMpMsg(t('mpFail')); return; }
+    var f = fb.f;
+    for (var i = 0; i < 10; i++){
+      var code = randomCode();
+      var players = {};
+      players[fb.uid] = { name: name, joinedAt: f.serverTimestamp() };
+      try {
+        await withTimeout(f.set(f.ref(fb.db, roomPath(code)), {
+          host: fb.uid, createdAt: f.serverTimestamp(), state: 'lobby',
+          duration: 60, round: 0, seed: 0, players: players
+        }), 8000);
+        track('mp-room-created');
+        mpEnter(fb, code, name, true);
+        return;
+      } catch(e){
+        if (!/permission_denied/i.test((e && (e.code || e.message)) || '')) break;
+      }
+    }
+    setMpMsg(t('mpFail'));
+  }
+
+  async function mpJoin(){
+    var name = getMpName();
+    var code = elMpCode.value.trim().toUpperCase();
+    if (!/^[A-Z2-9]{4}$/.test(code)) { setMpMsg(t('mpNotFound')); return; }
+    setMpMsg(t('mpConnecting'));
+    var fb;
+    try { fb = await withTimeout(loadFirebase(), 10000); } catch(e){ setMpMsg(t('mpFail')); return; }
+    var f = fb.f, room;
+    try { room = (await withTimeout(f.get(f.ref(fb.db, roomPath(code))), 8000)).val(); } catch(e){ setMpMsg(t('mpFail')); return; }
+    if (!room) { setMpMsg(t('mpNotFound')); return; }
+    var players = room.players || {};
+    if (room.state !== 'lobby' && !players[fb.uid]) { setMpMsg(t('mpStarted')); return; }
+    if (!players[fb.uid] && Object.keys(players).length >= MP_MAX_PLAYERS) { setMpMsg(t('mpFull')); return; }
+    try {
+      await withTimeout(f.set(f.ref(fb.db, roomPath(code, 'players/' + fb.uid)), { name: name, joinedAt: f.serverTimestamp() }), 8000);
+    } catch(e){ setMpMsg(t('mpFull')); return; }
+    track('mp-room-joined');
+    mpEnter(fb, code, name, false);
+  }
+
+  function mpEnter(fb, code, name, isHost){
+    mpCleanup();
+    mp = { fb: fb, f: fb.f, uid: fb.uid, code: code, name: name, isHost: isHost,
+           phase: 'lobby', room: null, scores: {}, startedRound: -1, unsubs: [], ended: false };
+    mp.unsubs.push(fb.f.onValue(mpRef(), function(snap){ handleRoom(snap.val()); }));
+    mp.unsubs.push(fb.f.onValue(fb.f.ref(fb.db, '.info/connected'), function(s){
+      if (s.val() !== true || !mp) return;
+      mpArmDisconnect();
+      if (mp.room && mp.room.state === 'lobby' && mp.phase !== 'playing' && !(mp.room.players && mp.room.players[mp.uid])) mpPublishPlayer();
+    }));
+    document.getElementById('mp-room-code').textContent = code;
+    showScreen('mpLobby');
+    renderLobby();
+  }
+
+  function mpPublishPlayer(){
+    if (!mp) return;
+    mp.f.set(mpRef('players/' + mp.uid), { name: mp.name, joinedAt: mp.f.serverTimestamp() }).catch(function(){});
+  }
+
+  function mpArmDisconnect(){
+    if (!mp) return;
+    if (mp.isHost) {
+      if (!mp.room || mp.room.state === 'lobby') mp.f.onDisconnect(mpRef()).remove().catch(function(){});
+    } else {
+      mp.f.onDisconnect(mpRef('players/' + mp.uid)).remove().catch(function(){});
+    }
+  }
+
+  function handleRoom(room){
+    if (!mp) return;
+    if (!room){
+      mp.room = null;
+      mp.roomGone = true;
+      if (mp.phase === 'lobby') mpExit(t('mpRoomClosed'));
+      else if (mp.phase === 'results') renderResults();
+      return;
+    }
+    mp.room = room;
+    if (room.round === mp.startedRound && room.startedAt) mp.startedAt = room.startedAt;
+    if (room.state === 'playing' && room.round !== mp.startedRound && mp.phase !== 'playing'){
+      mpBegin(room);
+      return;
+    }
+    if (room.state === 'lobby' && mp.phase === 'results'){
+      if (mp.scoresUnsub) { mp.scoresUnsub(); mp.scoresUnsub = null; }
+      mp.phase = 'lobby';
+      if (!(room.players && room.players[mp.uid])) mpPublishPlayer();
+      showScreen('mpLobby');
+    }
+    if (mp.phase === 'lobby') renderLobby();
+    if (mp.phase === 'results') renderResults();
+  }
+
+  function renderLobby(){
+    if (!mp) return;
+    var room = mp.room || {};
+    var players = Object.keys(room.players || {}).map(function(uid){
+      return { uid: uid, name: room.players[uid].name || '?', joinedAt: room.players[uid].joinedAt || 0 };
+    });
+    players.sort(function(a, b){ return a.joinedAt - b.joinedAt || (a.uid < b.uid ? -1 : 1); });
+    var list = document.getElementById('mp-players');
+    list.innerHTML = '';
+    players.forEach(function(p){
+      var row = document.createElement('div');
+      row.className = 'mp-row' + (p.uid === mp.uid ? ' me' : '');
+      var n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = p.name;
+      row.appendChild(n);
+      if (p.uid === room.host){
+        var tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = t('mpHost');
+        row.appendChild(tag);
+      }
+      list.appendChild(row);
+    });
+    document.getElementById('mp-players-label').textContent = t('mpPlayers') + ' ' + players.length + ' / ' + MP_MAX_PLAYERS;
+    var dur = document.getElementById('mp-dur');
+    dur.classList.toggle('locked', !mp.isHost);
+    dur.querySelectorAll('.mp-dur-btn').forEach(function(b){
+      b.classList.toggle('selected', parseInt(b.getAttribute('data-sec'), 10) === room.duration);
+    });
+    document.getElementById('mp-start').style.display = mp.isHost ? '' : 'none';
+    document.getElementById('mp-wait').style.display = mp.isHost ? 'none' : '';
+  }
+
+  function mpRefreshText(){
+    if (!mp) return;
+    if (mp.phase === 'lobby') renderLobby();
+    if (mp.phase === 'results') renderResults();
+  }
+
+  async function mpStart(){
+    if (!mp || !mp.isHost || !mp.room) return;
+    var btn = document.getElementById('mp-start');
+    btn.disabled = true;
+    try {
+      await mp.f.update(mpRef(), {
+        state: 'playing',
+        round: (mp.room.round || 0) + 1,
+        seed: Math.floor(Math.random() * 2147483646) + 1,
+        startedAt: mp.f.serverTimestamp()
+      });
+    } catch(e){}
+    btn.disabled = false;
+  }
+
+  function mpBegin(room){
+    mp.phase = 'playing';
+    mp.startedRound = room.round;
+    mp.seed = room.seed;
+    mp.duration = room.duration || 60;
+    mp.startedAt = room.startedAt;
+    mp.score = 0; mp.correct = 0; mp.qIndex = 0;
+    mp.ended = false; mp.started = false; mp.busy = false;
+    if (mp.isHost) mp.f.onDisconnect(mpRef()).cancel().catch(function(){});
+    state.mode = 'mp';
+    state.active = true;
+    state.score = 0;
+    state.level = 1;
+    screens.game.classList.add('mp');
+    elInput.value = '';
+    elInput.classList.remove('reveal');
+    elInput.disabled = true;
+    showScreen('game');
+    renderHud();
+    mpWriteScore(false);
+    track('mp-round-start');
+    mpTick();
+    mp.tick = setInterval(mpTick, 100);
+  }
+
+  function mpSetTimer(ms){
+    var s = Math.max(0, Math.ceil(ms / 1000));
+    var ss = s % 60;
+    elMpTimer.textContent = Math.floor(s / 60) + ':' + (ss < 10 ? '0' : '') + ss;
+    elMpTimer.classList.toggle('low', !!mp && mp.started && s <= 10);
+  }
+
+  function mpTick(){
+    if (!mp || mp.phase !== 'playing' || mp.ended) return;
+    var now = serverNow();
+    var startAt = mp.startedAt + MP_COUNTDOWN_MS;
+    var endAt = startAt + mp.duration * 1000;
+    if (now < startAt){
+      elProblem.textContent = String(Math.ceil((startAt - now) / 1000));
+      mpSetTimer(mp.duration * 1000);
+      return;
+    }
+    if (!mp.started){ mp.started = true; nextProblemMp(); }
+    if (endAt - now <= 0){ endMpRound(); return; }
+    mpSetTimer(endAt - now);
+  }
+
+  function nextProblemMp(){
+    if (!mp || mp.phase !== 'playing' || mp.ended) return;
+    var idx = mp.qIndex++;
+    var prevLevel = state.level;
+    state.level = Math.min(MAX_LEVEL, 1 + Math.floor(idx / MP_QUESTIONS_PER_LEVEL));
+    var rng = mulberry32(((mp.seed >>> 0) ^ Math.imul(idx + 1, 0x9E3779B1)) >>> 0);
+    state.current = generateProblem(state.level, rng);
+    elProblem.textContent = state.current.text;
+    elInput.value = '';
+    elInput.classList.remove('reveal');
+    elInput.disabled = false;
+    mp.busy = false;
+    mp.qStart = performance.now();
+    renderHud();
+    if (idx > 0 && state.level > prevLevel) flashLevelUp();
+    setTimeout(function(){ elInput.focus(); }, 30);
+  }
+
+  // Score for one answer; points are rounded up so any speed bonus is always worth at least +1.
+  function mpScoreFor(raw){
+    var v = raw ? parseInt(raw, 10) : NaN;
+    if (isNaN(v) || v !== state.current.answer) return { correct: false, pts: 0, pct: 0 };
+    var elapsed = performance.now() - mp.qStart;
+    var pct = 0;
+    for (var i = 0; i < MP_BONUS.length; i++){
+      if (elapsed <= MP_BONUS[i].maxMs) { pct = MP_BONUS[i].pct; break; }
+    }
+    return { correct: true, pct: pct, pts: Math.ceil(state.current.points * (100 + pct) / 100) };
+  }
+
+  function resolveAnswerMp(raw){
+    if (!mp || mp.phase !== 'playing' || mp.ended || mp.busy || !mp.started) return;
+    mp.busy = true;
+    elInput.disabled = true;
+    var r = mpScoreFor(raw);
+    if (r.correct){
+      mp.score += r.pts;
+      mp.correct++;
+      state.score = mp.score;
+      spawnPops('ok');
+      if (r.pct) spawnBonus(r.pct);
+      mpWriteScore(false);
+    } else {
+      spawnPops('bad');
+      elInput.value = state.current.answer;
+      elInput.classList.add('reveal');
+    }
+    renderHud();
+    mp.nextTimer = setTimeout(nextProblemMp, MP_FEEDBACK_MS);
+  }
+
+  function mpWriteScore(done){
+    if (!mp) return Promise.resolve();
+    return mp.f.set(mpRef('scores/' + mp.startedRound + '/' + mp.uid), {
+      name: mp.name, score: mp.score, correct: mp.correct, done: !!done
+    }).catch(function(){});
+  }
+
+  async function endMpRound(){
+    if (!mp || mp.ended) return;
+    mp.ended = true;
+    clearInterval(mp.tick);
+    clearTimeout(mp.nextTimer);
+    if (!mp.busy && mp.started && state.current && elInput.value.trim() !== ''){
+      var r = mpScoreFor(elInput.value.trim());
+      if (r.correct){ mp.score += r.pts; mp.correct++; state.score = mp.score; }
+    }
+    elInput.disabled = true;
+    state.active = false;
+    state.mode = 'solo';
+    screens.game.classList.remove('mp');
+    mp.phase = 'results';
+    mp.scoresUnsub = mp.f.onValue(mpRef('scores/' + mp.startedRound), function(s){
+      mp.scores = s.val() || {};
+      if (mp && mp.phase === 'results') renderResults();
+    });
+    showScreen('mpResults');
+    renderResults();
+    await mpWriteScore(true);
+  }
+
+  function renderResults(){
+    if (!mp) return;
+    var rows = Object.keys(mp.scores || {}).map(function(uid){
+      var s = mp.scores[uid];
+      return { uid: uid, name: s.name || '?', score: s.score || 0, done: !!s.done };
+    });
+    rows.sort(function(a, b){ return b.score - a.score || (a.name < b.name ? -1 : 1); });
+    var list = document.getElementById('mp-results');
+    list.innerHTML = '';
+    rows.forEach(function(p){
+      var rank = 1 + rows.filter(function(o){ return o.score > p.score; }).length;
+      var row = document.createElement('div');
+      row.className = 'mp-row' + (p.uid === mp.uid ? ' me' : '') + (p.done ? '' : ' pending');
+      var r = document.createElement('span');
+      r.className = 'r';
+      r.textContent = rank + '.';
+      var n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = p.name;
+      var s = document.createElement('span');
+      s.className = 's';
+      s.textContent = p.score;
+      row.appendChild(r);
+      row.appendChild(n);
+      row.appendChild(s);
+      list.appendChild(row);
+    });
+    var canNext = mp.isHost && !mp.roomGone;
+    document.getElementById('mp-next').style.display = canNext ? '' : 'none';
+    var wait = document.getElementById('mp-next-wait');
+    wait.style.display = canNext ? 'none' : '';
+    wait.textContent = mp.roomGone ? t('mpHostLeft') : t('mpWaitNext');
+  }
+
+  async function mpNext(){
+    if (!mp || !mp.isHost || mp.roomGone) return;
+    try { await mp.f.update(mpRef(), { state: 'lobby' }); } catch(e){ return; }
+    mpArmDisconnect();
+  }
+
+  function mpCleanup(){
+    if (!mp) return;
+    clearInterval(mp.tick);
+    clearTimeout(mp.nextTimer);
+    mp.unsubs.forEach(function(u){ try { u(); } catch(e){} });
+    if (mp.scoresUnsub) { try { mp.scoresUnsub(); } catch(e){} }
+    screens.game.classList.remove('mp');
+    state.mode = 'solo';
+    state.active = false;
+    mp = null;
+  }
+
+  function mpExit(msg){
+    mpCleanup();
+    openMpMenu();
+    if (msg) setMpMsg(msg);
+  }
+
+  async function mpLeave(){
+    var m = mp;
+    if (!m) return;
+    var target = m.isHost ? mpRefOf(m) : mpRefOf(m, 'players/' + m.uid);
+    mpCleanup();
+    openMpMenu();
+    try {
+      await m.f.onDisconnect(target).cancel();
+      await m.f.remove(target);
+    } catch(e){}
+  }
+
+  function mpRefOf(m, sub){ return m.f.ref(m.fb.db, roomPath(m.code, sub)); }
+
+  function mpCopyLink(){
+    if (!mp) return;
+    var url = location.origin + location.pathname + '?room=' + mp.code;
+    var btn = document.getElementById('mp-copy');
+    var done = function(){
+      btn.textContent = t('mpCopied');
+      setTimeout(function(){ btn.textContent = t('mpCopy'); }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(done).catch(function(){});
+    } else if (navigator.share){
+      navigator.share({ url: url, title: 'QuickMath Trainer' }).catch(function(){});
+    }
+  }
+
+  document.getElementById('btn-mp').addEventListener('click', function(){ openMpMenu(); });
+  document.getElementById('mp-menu-back').addEventListener('click', function(){ showScreen('start'); });
+  document.getElementById('mp-create').addEventListener('click', mpCreate);
+  document.getElementById('mp-join').addEventListener('click', mpJoin);
+  document.getElementById('mp-copy').addEventListener('click', mpCopyLink);
+  document.getElementById('mp-start').addEventListener('click', mpStart);
+  document.getElementById('mp-leave').addEventListener('click', mpLeave);
+  document.getElementById('mp-next').addEventListener('click', mpNext);
+  document.getElementById('mp-results-leave').addEventListener('click', mpLeave);
+  elMpCode.addEventListener('input', function(){
+    elMpCode.value = elMpCode.value.toUpperCase().replace(/[^A-Z2-9]/g, '');
+  });
+  elMpCode.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') mpJoin();
+  });
+  document.querySelectorAll('#mp-dur .mp-dur-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (!mp || !mp.isHost) return;
+      mp.f.update(mpRef(), { duration: parseInt(btn.getAttribute('data-sec'), 10) }).catch(function(){});
+    });
+  });
+
   // ---------- Init ----------
   state.lang = loadLang();
   elLangSelect.value = state.lang;
   applyLanguage();
   showScreen('start');
+
+  if (GOATCOUNTER_CODE) {
+    var gc = document.createElement('script');
+    gc.async = true;
+    gc.src = 'https://gc.zgo.at/count.js';
+    gc.setAttribute('data-goatcounter', 'https://' + GOATCOUNTER_CODE + '.goatcounter.com/count');
+    document.head.appendChild(gc);
+  }
+
+  var inviteCode = (new URLSearchParams(location.search).get('room') || '').toUpperCase();
+  if (/^[A-Z2-9]{4}$/.test(inviteCode)) openMpMenu(inviteCode);
 })();
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
