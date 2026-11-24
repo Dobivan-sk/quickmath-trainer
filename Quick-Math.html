@@ -1228,8 +1228,7 @@
     var f = fb.f;
     for (var i = 0; i < 10; i++){
       var code = randomCode();
-      var players = {};
-      players[fb.uid] = { name: name, joinedAt: f.serverTimestamp() };
+      var players = { s0: { uid: fb.uid, name: name, joinedAt: f.serverTimestamp() } };
       try {
         await withTimeout(f.set(f.ref(fb.db, roomPath(code)), {
           host: fb.uid, createdAt: f.serverTimestamp(), state: 'lobby',
@@ -1255,25 +1254,49 @@
     var f = fb.f, room;
     try { room = (await withTimeout(f.get(f.ref(fb.db, roomPath(code))), 8000)).val(); } catch(e){ setMpMsg(t('mpFail')); return; }
     if (!room) { setMpMsg(t('mpNotFound')); return; }
-    var players = room.players || {};
-    if (room.state !== 'lobby' && !players[fb.uid]) { setMpMsg(t('mpStarted')); return; }
-    if (!players[fb.uid] && Object.keys(players).length >= MP_MAX_PLAYERS) { setMpMsg(t('mpFull')); return; }
-    try {
-      await withTimeout(f.set(f.ref(fb.db, roomPath(code, 'players/' + fb.uid)), { name: name, joinedAt: f.serverTimestamp() }), 8000);
-    } catch(e){ setMpMsg(t('mpFull')); return; }
+    var existing = mpSlotOf(room, fb.uid);
+    if (room.state !== 'lobby' && !existing) { setMpMsg(t('mpStarted')); return; }
+    var slots = existing ? [existing] : mpFreeSlots(room);
+    if (!slots.length) { setMpMsg(t('mpFull')); return; }
+    var joined = null, denied = false;
+    for (var i = 0; i < slots.length && !joined; i++){
+      try {
+        await withTimeout(f.set(f.ref(fb.db, roomPath(code, 'players/' + slots[i])),
+          { uid: fb.uid, name: name, joinedAt: f.serverTimestamp() }), 8000);
+        joined = slots[i];
+      } catch(e){
+        denied = /permission_denied/i.test((e && (e.code || e.message)) || '');
+        if (!denied) break;
+      }
+    }
+    if (!joined) { setMpMsg(denied ? t('mpFull') : t('mpFail')); return; }
     track('mp-room-joined');
-    mpEnter(fb, code, name, false);
+    mpEnter(fb, code, name, false, joined);
   }
 
-  function mpEnter(fb, code, name, isHost){
+  // Players live in fixed slots s0..s7; the database rules only accept these keys, which enforces the 8-player limit.
+  function mpSlotOf(room, uid){
+    var p = (room && room.players) || {};
+    for (var k in p){ if (p[k] && p[k].uid === uid) return k; }
+    return null;
+  }
+
+  function mpFreeSlots(room){
+    var p = (room && room.players) || {};
+    var out = [];
+    for (var i = 0; i < MP_MAX_PLAYERS; i++){ if (!p['s' + i]) out.push('s' + i); }
+    return out;
+  }
+
+  function mpEnter(fb, code, name, isHost, slot){
     mpCleanup();
-    mp = { fb: fb, f: fb.f, uid: fb.uid, code: code, name: name, isHost: isHost,
+    mp = { fb: fb, f: fb.f, uid: fb.uid, code: code, name: name, isHost: isHost, slot: slot || 's0',
            phase: 'lobby', room: null, scores: {}, startedRound: -1, unsubs: [], ended: false };
     mp.unsubs.push(fb.f.onValue(mpRef(), function(snap){ handleRoom(snap.val()); }));
     mp.unsubs.push(fb.f.onValue(fb.f.ref(fb.db, '.info/connected'), function(s){
       if (s.val() !== true || !mp) return;
       mpArmDisconnect();
-      if (mp.room && mp.room.state === 'lobby' && mp.phase !== 'playing' && !(mp.room.players && mp.room.players[mp.uid])) mpPublishPlayer();
+      if (mp.room && mp.room.state === 'lobby' && mp.phase !== 'playing' && !mpSlotOf(mp.room, mp.uid)) mpPublishPlayer();
     }));
     document.getElementById('mp-room-code').textContent = code;
     showScreen('mpLobby');
@@ -1282,7 +1305,13 @@
 
   function mpPublishPlayer(){
     if (!mp) return;
-    mp.f.set(mpRef('players/' + mp.uid), { name: mp.name, joinedAt: mp.f.serverTimestamp() }).catch(function(){});
+    var slots = mpFreeSlots(mp.room);
+    (function tryNext(i){
+      if (!mp || i >= slots.length) return;
+      mp.f.set(mpRef('players/' + slots[i]), { uid: mp.uid, name: mp.name, joinedAt: mp.f.serverTimestamp() })
+        .then(function(){ if (mp) { mp.slot = slots[i]; mpArmDisconnect(); } })
+        .catch(function(){ tryNext(i + 1); });
+    })(0);
   }
 
   function mpArmDisconnect(){
@@ -1290,7 +1319,7 @@
     if (mp.isHost) {
       if (!mp.room || mp.room.state === 'lobby') mp.f.onDisconnect(mpRef()).remove().catch(function(){});
     } else {
-      mp.f.onDisconnect(mpRef('players/' + mp.uid)).remove().catch(function(){});
+      mp.f.onDisconnect(mpRef('players/' + mp.slot)).remove().catch(function(){});
     }
   }
 
@@ -1304,6 +1333,7 @@
       return;
     }
     mp.room = room;
+    mp.slot = mpSlotOf(room, mp.uid) || mp.slot;
     if (room.round === mp.startedRound && room.startedAt) mp.startedAt = room.startedAt;
     if (room.state === 'playing' && room.round !== mp.startedRound && mp.phase !== 'playing'){
       mpBegin(room);
@@ -1312,7 +1342,7 @@
     if (room.state === 'lobby' && mp.phase === 'results'){
       if (mp.scoresUnsub) { mp.scoresUnsub(); mp.scoresUnsub = null; }
       mp.phase = 'lobby';
-      if (!(room.players && room.players[mp.uid])) mpPublishPlayer();
+      if (!mpSlotOf(room, mp.uid)) mpPublishPlayer();
       showScreen('mpLobby');
     }
     if (mp.phase === 'lobby') renderLobby();
@@ -1322,8 +1352,9 @@
   function renderLobby(){
     if (!mp) return;
     var room = mp.room || {};
-    var players = Object.keys(room.players || {}).map(function(uid){
-      return { uid: uid, name: room.players[uid].name || '?', joinedAt: room.players[uid].joinedAt || 0 };
+    var players = Object.keys(room.players || {}).map(function(slot){
+      var p = room.players[slot];
+      return { uid: p.uid, name: p.name || '?', joinedAt: p.joinedAt || 0 };
     });
     players.sort(function(a, b){ return a.joinedAt - b.joinedAt || (a.uid < b.uid ? -1 : 1); });
     var list = document.getElementById('mp-players');
@@ -1563,7 +1594,7 @@
   async function mpLeave(){
     var m = mp;
     if (!m) return;
-    var target = m.isHost ? mpRefOf(m) : mpRefOf(m, 'players/' + m.uid);
+    var target = m.isHost ? mpRefOf(m) : mpRefOf(m, 'players/' + m.slot);
     mpCleanup();
     openMpMenu();
     try {

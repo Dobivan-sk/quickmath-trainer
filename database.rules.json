@@ -33,9 +33,10 @@
         },
 
         "players": {
-          "$uid": {
-            ".write": "auth != null && auth.uid === $uid",
-            ".validate": "newData.hasChildren(['name']) && newData.parent().numChildren() <= 8 && (data.exists() || newData.parent().parent().child('state').val() === 'lobby')",
+          "$slot": {
+            ".write": "auth != null && $slot.matches(/^s[0-7]$/) && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid))",
+            ".validate": "newData.hasChildren(['uid', 'name']) && newData.child('uid').val() === auth.uid && (data.exists() || newData.parent().parent().child('state').val() === 'lobby')",
+            "uid": { ".validate": "newData.isString()" },
             "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 14" },
             "joinedAt": { ".validate": "newData.isNumber()" },
             "$other": { ".validate": false }
