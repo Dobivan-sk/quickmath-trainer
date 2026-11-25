@@ -251,7 +251,7 @@
 
   @media (min-height: 751px){
     #screen-game{ padding-top: 148px; } /* shifts the equation + keypad lower, away from the HUD */
-    .keypad-key{ aspect-ratio:auto; height:76px; } /* slightly lower keys so the keypad still clears the footer */
+    .keypad-grid, .timer-wrap{ width: min(64vw, 310px); } /* keypad and countdown bar stay equal; keys stay square and the keypad clears the footer */
   }
 
   @media (max-height: 750px){
