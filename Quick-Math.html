@@ -76,6 +76,7 @@
     margin-top: 10px;
     transition: background .15s ease, color .15s ease, transform .08s ease;
   }
+  .btn:disabled{ opacity:0.35; pointer-events:none; }
   .btn:active{ background:var(--yellow); color:#000; transform:scale(0.97); }
   .btn.secondary{ border-color: rgba(255,204,0,0.4); color: rgba(255,204,0,0.8); font-size: clamp(13px,3.4vw,16px); padding: 10px 30px; }
 
@@ -976,7 +977,14 @@
       if (!raw) return [];
       var parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
-      return parsed;
+      // drop exact duplicates (same name, score and tag) left by repeated Save taps
+      var seen = {};
+      return parsed.filter(function(e){
+        var k = e.name + '|' + e.score + '|' + (e.tag || '');
+        if (seen[k]) return false;
+        seen[k] = true;
+        return true;
+      });
     } catch(e){
       return [];
     }
@@ -1271,6 +1279,7 @@
     elFinalLevel.textContent = t('level') + ' ' + state.level + ' / ' + MAX_LEVEL;
     elNameInput.value = '';
     elSavedMsg.textContent = '';
+    btnSave.disabled = false;
     showScreen('gameover');
   }
 
@@ -1334,6 +1343,7 @@
     var name = elNameInput.value.trim() || t('defaultName');
     var ok = saveHighscore(name, parseInt(elFinalScore.textContent, 10));
     elSavedMsg.textContent = ok ? t('saved') : t('saveFailed');
+    if (ok) btnSave.disabled = true; // one save per game
     renderHighscores();
   });
 
