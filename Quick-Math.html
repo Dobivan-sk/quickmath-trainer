@@ -1114,6 +1114,7 @@
     state.mode = 'solo';
     screens.game.classList.remove('mp');
     track('solo-start');
+    state.startedAt = Date.now();
     state.score = 0;
     state.level = 1;
     state.lives = START_LIVES;
@@ -1126,7 +1127,15 @@
     nextProblem();
   }
 
+  function trackSoloLength(){
+    if (!state.startedAt) return;
+    var sec = (Date.now() - state.startedAt) / 1000;
+    state.startedAt = 0;
+    track('solo-length-' + (sec < 60 ? 'under-1min' : sec <= 300 ? '1-5min' : 'over-5min'));
+  }
+
   function endGame(){
+    trackSoloLength();
     state.active = false;
     clearInterval(state.timerInterval);
     elFinalScore.textContent = state.score;
@@ -1480,6 +1489,7 @@
     renderHud();
     mpWriteScore(false);
     track('mp-round-start');
+    track('mp-length-' + Math.round(mp.duration / 60) + 'min');
     mpTick();
     mp.tick = setInterval(mpTick, 100);
   }
