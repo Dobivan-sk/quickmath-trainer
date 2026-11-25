@@ -55,6 +55,7 @@
   h1.title span{ color:var(--red); }
 
   .tagline{
+    white-space:pre-line;
     font-size: clamp(11px, 3.2vw, 16px);
     opacity:0.65;
     margin:0 0 28px 0;
@@ -491,7 +492,8 @@
   <!-- START SCREEN -->
   <div class="screen active" id="screen-start">
     <h1 class="title">QUICK<span>MATH</span></h1>
-    <p class="tagline" id="tagline">malá aj veľká násobilka a delenie · 10 úrovní · 3 životy</p>
+    <p class="tagline" id="tagline">Malá aj veľká násobilka a delenie
+10 úrovní · 3 životy</p>
     <button class="btn" id="btn-start">HRAŤ</button>
     <button class="btn secondary" id="btn-mp" style="margin-top:12px;" data-i18n="mpBtn">Multiplayer</button>
     <button class="btn secondary" id="btn-howto" style="margin-top:12px;">Návod</button>
@@ -703,7 +705,7 @@
 
   var STRINGS = {
     sk: {
-      tagline: 'malá aj veľká násobilka a delenie · 10 úrovní · 3 životy',
+      tagline: 'Malá aj veľká násobilka a delenie\n10 úrovní · 3 životy',
       play: 'HRAŤ',
       noScores: 'zatiaľ žiadne skóre',
       level: 'úroveň',
@@ -762,7 +764,7 @@
       mpHostLeft: 'zakladateľ odišiel'
     },
     en: {
-      tagline: 'small & large multiplication and division · 10 levels · 3 lives',
+      tagline: 'Small & large multiplication and division\n10 levels · 3 lives',
       play: 'PLAY',
       noScores: 'no scores yet',
       level: 'level',
