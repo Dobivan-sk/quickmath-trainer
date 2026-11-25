@@ -161,6 +161,8 @@
   /* Game screen */
   .equation-row{
     display:flex; align-items:baseline; justify-content:center; gap: 0.25em;
+    row-gap: calc(0.25em + 5px); /* extra space when the answer wraps under the question */
+    position:relative; top:-10px;
     flex-wrap:wrap;
   }
   .problem-text{
