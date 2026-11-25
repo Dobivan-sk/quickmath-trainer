@@ -220,7 +220,7 @@
     display:grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 7px;
-    width: min(57vw, 209px);
+    width: min(70vw, 340px); /* same width as the countdown bar */
   }
   .keypad-key{
     aspect-ratio: 1;
@@ -253,12 +253,14 @@
     .screen{ padding: 16px 20px; }
     .keypad{ margin-top:6px; }
     .keypad-grid{ gap:5px; }
+    .keypad-key{ aspect-ratio:auto; height:clamp(46px, 8vh, 64px); }
     .timer-wrap{ margin-top:8px; }
     .sub-text{ margin-top:6px; }
   }
 
   @media (max-height: 700px){
-    .keypad-grid{ width: min(49vw, 180px); gap:4px; }
+    .keypad-grid{ gap:4px; }
+    .keypad-key{ height:clamp(44px, 7.4vh, 52px); }
   }
 
   .levelup-toast{
