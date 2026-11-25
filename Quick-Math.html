@@ -89,7 +89,9 @@
     padding: 5px 4px;
     border-bottom: 1px solid rgba(255,204,0,0.12);
   }
-  .hs-row .n{ color:var(--yellow); opacity:0.9; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:65%; }
+  .hs-row .n{ color:var(--yellow); opacity:0.9; text-align:left; display:flex; align-items:baseline; gap:6px; min-width:0; max-width:72%; }
+  .hs-row .nm{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hs-row .tg{ flex:none; font-size:0.75em; opacity:0.6; letter-spacing:0.5px; }
   .hs-row .s{ color:var(--red); }
   .hs-empty{ opacity:0.4; font-size:13px; padding:10px 0; }
 
@@ -238,6 +240,12 @@
     font-size: clamp(9px, 2.8vw, 14px);
     letter-spacing: 0.5px;
   }
+  .keypad-enter{
+    border-color: var(--red);
+    color: var(--red);
+    background: rgba(237,28,36,0.08);
+  }
+  .keypad-enter:active{ background: rgba(237,28,36,0.3); }
 
   @media (max-height: 750px){
     .screen{ padding: 16px 20px; }
@@ -320,6 +328,16 @@
     display:flex; flex-direction:column; align-items:center;
   }
   .mp-or{ font-size:13px; opacity:0.5; margin:14px 0 4px; letter-spacing:1px; }
+  #mp-name, #mp-create{
+    width: min(72vw, 270px);
+    padding: 13px 20px;
+    font-size: clamp(15px, 4vw, 20px);
+    border-radius: 40px;
+    border-width: 1.5px;
+    box-sizing: border-box;
+  }
+  #mp-name{ border-color: var(--red); color: var(--red); letter-spacing: 1.5px; }
+  #mp-name::placeholder{ color: rgba(237,28,36,0.55); }
   .mp-code{
     font-size: clamp(30px, 9vw, 48px);
     letter-spacing: 0.12em;
@@ -474,9 +492,9 @@
         <button class="keypad-key" data-digit="7">7</button>
         <button class="keypad-key" data-digit="8">8</button>
         <button class="keypad-key" data-digit="9">9</button>
-        <button class="keypad-key keypad-action" id="keypad-enter">ENTER</button>
-        <button class="keypad-key" data-digit="0">0</button>
         <button class="keypad-key keypad-action" id="keypad-backspace">⌫</button>
+        <button class="keypad-key" data-digit="0">0</button>
+        <button class="keypad-key keypad-action keypad-enter" id="keypad-enter">ENTER</button>
       </div>
     </div>
 
@@ -501,7 +519,7 @@
   <!-- MULTIPLAYER: MENU -->
   <div class="screen" id="screen-mp-menu">
     <div class="mp-inner">
-      <h1 class="title" data-i18n="mpTitle">MULTIPLAYER</h1>
+      <h1 class="title">MULTI<span>PLAYER</span></h1>
       <input class="name-input" id="mp-name" type="text" maxlength="14" data-i18n-ph="namePlaceholder" placeholder="tvoje meno" style="margin-top:14px;">
       <button class="btn" id="mp-create" style="margin-top:18px;" data-i18n="mpCreate">Vytvoriť miestnosť</button>
       <div class="mp-or" data-i18n="mpOr">alebo</div>
@@ -625,7 +643,6 @@
       howtoText: 'Trénuj malú aj veľkú násobilku a delenie. Začínaš s 3 životmi. Za každú správnu sériu 5 výsledkov dostaneš +1 život, za zlú oň prídeš. Tak isto keď si zastavíš hru prichádzaš o -1 život. Čaká ťa 10 úrovní. Dokáž sebe, že zvládni všetky!',
       back: 'Späť',
       mpBtn: 'Multiplayer',
-      mpTitle: 'MULTIPLAYER',
       mpCreate: 'Vytvoriť miestnosť',
       mpOr: 'alebo',
       mpCodePh: 'kód',
@@ -679,7 +696,6 @@
       howtoText: 'Train both small and large multiplication and division. You start with 3 lives. For every correct streak of 5 answers you gain +1 life, a wrong answer costs you one. Likewise, pausing the game costs you -1 life. 10 levels await you. Prove to yourself that you can master them all!',
       back: 'Back',
       mpBtn: 'Multiplayer',
-      mpTitle: 'MULTIPLAYER',
       mpCreate: 'Create room',
       mpOr: 'or',
       mpCodePh: 'code',
@@ -820,6 +836,7 @@
     Object.keys(screens).forEach(function(k){
       screens[k].classList.toggle('active', k === name);
     });
+    if (name === 'start') renderHighscores();
   }
 
   function randInt(min, max, rng){
@@ -865,10 +882,12 @@
     }
   }
 
-  function saveHighscore(name, score){
+  function saveHighscore(name, score, tag){
     try {
       var list = loadHighscores();
-      list.push({ name: name, score: score });
+      var entry = { name: name, score: score };
+      if (tag) entry.tag = tag;
+      list.push(entry);
       list.sort(function(a,b){ return b.score - a.score; });
       list = list.slice(0, HS_MAX_ENTRIES);
       localStorage.setItem(HS_KEY, JSON.stringify(list));
@@ -893,7 +912,16 @@
       row.className = 'hs-row';
       var n = document.createElement('span');
       n.className = 'n';
-      n.textContent = entry.name;
+      var nm = document.createElement('span');
+      nm.className = 'nm';
+      nm.textContent = entry.name;
+      n.appendChild(nm);
+      if (entry.tag){
+        var tg = document.createElement('span');
+        tg.className = 'tg';
+        tg.textContent = '(' + entry.tag + ')';
+        n.appendChild(tg);
+      }
       var s = document.createElement('span');
       s.className = 's';
       s.textContent = entry.score;
@@ -1549,6 +1577,7 @@
     state.active = false;
     state.mode = 'solo';
     screens.game.classList.remove('mp');
+    if (mp.score > 0) saveHighscore(mp.name, mp.score, 'run' + Math.round(mp.duration / 60) + 'm');
     mp.phase = 'results';
     mp.scoresUnsub = mp.f.onValue(mpRef('scores/' + mp.startedRound), function(s){
       mp.scores = s.val() || {};
