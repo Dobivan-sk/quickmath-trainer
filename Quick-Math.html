@@ -420,7 +420,7 @@
   .set-row{ width:100%; max-width:320px; margin:0 0 18px 0; display:flex; flex-direction:column; align-items:center; }
   .set-label{ font-size: clamp(12px,3.2vw,15px); letter-spacing:2px; opacity:0.55; margin:0 0 8px 0; }
   .set-opts{ display:flex; gap:8px; }
-  #screen-settings .lang-select{ font-size: clamp(14px,3.8vw,18px); padding:8px 14px; }
+  #screen-settings .lang-select{ font-size: clamp(14px,3.8vw,18px); padding:8px 14px; -webkit-appearance:none; appearance:none; text-align:center; text-align-last:center; min-width:190px; }
 
   /* Pixel art display mode */
   body.px{
@@ -475,7 +475,7 @@
   body.px .mp-or{ font-size:8px; letter-spacing:0; }
   body.px .howto-text{ font-size: clamp(8px, 2.5vw, 11px); line-height:2; }
   body.px .lang-select{ font-family:inherit; border-width:3px; font-size:10px; }
-  body.px #screen-settings .lang-select{ font-size:10px; }
+  body.px #screen-settings .lang-select{ font-size:10px; min-width:200px; }
   body.px .set-label{ font-size:9px; letter-spacing:0; }
   body.px .levelup-toast{ font-size: clamp(10px,3vw,14px); letter-spacing:0; }
   body.px .footer-credit{ font-size:7px; letter-spacing:0; }
