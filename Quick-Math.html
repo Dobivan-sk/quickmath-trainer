@@ -101,7 +101,7 @@
   .hud{
     position:absolute; top:0; left:0; right:0;
     display:flex; justify-content:space-between; align-items:flex-start;
-    padding: 22px 18px 0 18px;
+    padding: 54px 18px 0 18px; /* clear of the iOS Safari status-bar blur */
     font-size: clamp(11px, 3vw, 15px);
     opacity:0.85;
     z-index:3;
@@ -441,7 +441,7 @@
   body.px .hs-empty{ font-size:8px; }
   body.px #keypad-backspace{ font-family:"Courier New",monospace; font-size: clamp(16px, 5vw, 28px); }
   body.px .hud .block{ gap:5px; }
-  body.px .hud{ padding:22px 4px 0 4px; }
+  body.px .hud{ padding:54px 4px 0 4px; }
   body.px .hud .label{ font-size:5px; }
   body.px .hud-controls{ gap:5px; }
   body.px .hud-btn{ font-size:6px; padding:5px 5px; }
