@@ -1296,7 +1296,6 @@
           host: fb.uid, createdAt: f.serverTimestamp(), state: 'lobby',
           duration: 60, round: 0, seed: 0, players: players
         }), 8000);
-        track('mp-room-created');
         mpEnter(fb, code, name, true);
         return;
       } catch(e){
@@ -1332,7 +1331,6 @@
       }
     }
     if (!joined) { setMpMsg(denied ? t('mpFull') : t('mpFail')); return; }
-    track('mp-room-joined');
     mpEnter(fb, code, name, false, joined);
   }
 
