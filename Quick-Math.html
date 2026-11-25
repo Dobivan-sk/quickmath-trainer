@@ -415,7 +415,74 @@
     20%{ transform: translate(-50%, 0) scale(1.1); opacity:1; }
     100%{ transform: translate(-50%, -40px) scale(1); opacity:0; }
   }
+  /* Settings screen */
+  .set-row{ width:100%; max-width:320px; margin:0 0 18px 0; display:flex; flex-direction:column; align-items:center; }
+  .set-label{ font-size: clamp(12px,3.2vw,15px); letter-spacing:2px; opacity:0.55; margin:0 0 8px 0; }
+  .set-opts{ display:flex; gap:8px; }
+  #screen-settings .lang-select{ font-size: clamp(14px,3.8vw,18px); padding:8px 14px; }
+
+  /* Pixel art display mode */
+  body.px{
+    font-family:"Press Start 2P","Courier New",monospace;
+    -webkit-font-smoothing:none; font-smooth:never;
+    letter-spacing:0;
+  }
+  body.px *{ border-radius:0 !important; font-weight:400 !important; }
+  body.px h1.title{ font-size: clamp(20px, 6.4vw, 38px); line-height:1.25; letter-spacing:0; text-shadow:4px 4px 0 var(--yellow-dim); }
+  body.px h1.title span{ text-shadow:4px 4px 0 rgba(237,28,36,0.35); }
+  body.px .tagline{ font-size: clamp(7px, 2.1vw, 10px); line-height:1.7; letter-spacing:0; }
+  body.px .btn{ font-size: clamp(11px, 3.2vw, 15px); padding:14px 26px; letter-spacing:0; border-width:3px; box-shadow:4px 4px 0 var(--yellow-dim); }
+  body.px .btn.secondary{ font-size: clamp(8px, 2.6vw, 11px); padding:11px 18px; }
+  body.px .btn:active, body.px .keypad-key:active, body.px .hud-btn:active, body.px .mp-dur-btn:active{ transform:translate(3px,3px); box-shadow:1px 1px 0 var(--yellow-dim); }
+  body.px .hs-box h2{ font-size:9px; letter-spacing:0; }
+  body.px .hs-row{ font-size: clamp(8px,2.4vw,11px); border-bottom:2px dotted rgba(255,204,0,0.25); }
+  body.px .hs-empty{ font-size:8px; }
+  body.px #keypad-backspace{ font-family:"Courier New",monospace; font-size: clamp(16px, 5vw, 28px); }
+  body.px .hud .block{ gap:5px; }
+  body.px .hud{ padding:22px 4px 0 4px; }
+  body.px .hud .label{ font-size:5px; }
+  body.px .hud-controls{ gap:5px; }
+  body.px .hud-btn{ font-size:6px; padding:5px 5px; }
+  body.px .hud .value{ font-size:0.95em; white-space:nowrap; }
+  body.px .lives{ white-space:nowrap; font-size:1em; }
+  body.px .pxheart{ width:0.95em; height:0.85em; margin-right:2px; }
+  body.px .hud{ font-size: clamp(8px, 2.4vw, 11px); }
+  body.px .hud .label{ letter-spacing:0; }
+  body.px .hud-btn{ font-size:7px; border-width:2px; padding:5px 7px; letter-spacing:0; box-shadow:2px 2px 0 var(--yellow-dim); }
+  body.px .lives{ letter-spacing:0; }
+  body.px .pxheart{ width:1.2em; height:1.05em; vertical-align:-0.1em; margin-right:3px; shape-rendering:crispEdges; }
+  body.px .pxheart.empty{ opacity:0.2; }
+  body.px .problem-text, body.px .answer-input{ font-size: clamp(26px, 9.5vw, 80px); letter-spacing:0; }
+  body.px .answer-input{ border-bottom-width:6px; }
+  body.px .sub-text{ font-size: clamp(7px, 2.4vw, 11px); letter-spacing:0; line-height:1.6; }
+  body.px .timer-wrap{ height:12px; border:2px solid var(--yellow-dim); background:transparent; position:relative; }
+  body.px .timer-wrap::after{ content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg, transparent 0 8px, #000 8px 10px); }
+  body.px .timer-bar{ transition:width .1s steps(2); }
+  body.px .keypad-key{ border-width:3px; font-size: clamp(14px, 4.6vw, 26px); box-shadow:3px 3px 0 var(--yellow-dim); }
+  body.px .keypad-action{ font-size: clamp(6px, 1.9vw, 9px); letter-spacing:0; }
+  body.px .keypad-enter{ box-shadow:3px 3px 0 rgba(237,28,36,0.4); }
+  body.px .final-score{ font-size: clamp(32px, 11vw, 68px); }
+  body.px .name-input, body.px #mp-name{ border-width:3px; font-size: clamp(9px,2.8vw,12px); letter-spacing:0; }
+  body.px #mp-name, body.px #mp-create{ font-size: clamp(10px,3vw,14px); letter-spacing:0; padding:14px 14px; }
+  body.px .saved-msg{ font-size:9px; }
+  body.px .mp-code{ font-size: clamp(22px, 7vw, 36px); letter-spacing:0.08em; }
+  body.px .mp-qr{ border:4px solid var(--yellow); }
+  body.px .mp-qr svg{ shape-rendering:crispEdges; image-rendering:pixelated; }
+  body.px .mp-dur-btn{ border-width:3px; font-size: clamp(9px,2.8vw,12px); box-shadow:3px 3px 0 var(--yellow-dim); }
+  body.px .mp-row{ font-size: clamp(8px,2.6vw,11px); border-bottom:2px dotted rgba(255,204,0,0.25); }
+  body.px .mp-timer{ font-size: clamp(20px, 6.4vw, 34px); letter-spacing:0; }
+  body.px .mp-or{ font-size:8px; letter-spacing:0; }
+  body.px .howto-text{ font-size: clamp(8px, 2.5vw, 11px); line-height:2; }
+  body.px .lang-select{ font-family:inherit; border-width:3px; font-size:10px; }
+  body.px #screen-settings .lang-select{ font-size:10px; }
+  body.px .set-label{ font-size:9px; letter-spacing:0; }
+  body.px .levelup-toast{ font-size: clamp(10px,3vw,14px); letter-spacing:0; }
+  body.px .footer-credit{ font-size:7px; letter-spacing:0; }
+  body.px .pop{ animation-timing-function: steps(6); }
+  body.px .pop svg{ width:1em; height:1em; shape-rendering:crispEdges; display:block; }
+  body.px .bonus-pop{ font-size: clamp(10px, 3.2vw, 14px); letter-spacing:0; animation-timing-function: steps(6); }
 </style>
+
 </head>
 <body>
 <div id="app">
@@ -423,20 +490,37 @@
 
   <!-- START SCREEN -->
   <div class="screen active" id="screen-start">
-    <div class="lang-switch">
-      <select class="lang-select" id="lang-select">
-        <option value="sk">Slovenčina</option>
-        <option value="en">English</option>
-      </select>
-    </div>
     <h1 class="title">QUICK<span>MATH</span></h1>
     <p class="tagline" id="tagline">malá aj veľká násobilka a delenie · 10 úrovní · 3 životy</p>
     <button class="btn" id="btn-start">HRAŤ</button>
     <button class="btn secondary" id="btn-mp" style="margin-top:12px;" data-i18n="mpBtn">Multiplayer</button>
     <button class="btn secondary" id="btn-howto" style="margin-top:12px;">Návod</button>
+    <button class="btn secondary" id="btn-settings" style="margin-top:12px;" data-i18n="settingsBtn">Nastavenia</button>
     <div class="hs-box">
       <h2>Highscore</h2>
       <div id="hs-list"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS SCREEN -->
+  <div class="screen" id="screen-settings">
+    <div class="mp-inner">
+      <h1 class="title" data-i18n="settingsTitle">NASTAVENIA</h1>
+      <div class="set-row">
+        <div class="set-label" data-i18n="displayLabel">Zobrazenie</div>
+        <div class="set-opts">
+          <button class="mp-dur-btn selected" id="disp-classic" data-display="classic" data-i18n="displayClassic">Súčasné</button>
+          <button class="mp-dur-btn" id="disp-pixel" data-display="pixel" data-i18n="displayPixel">Pixel art</button>
+        </div>
+      </div>
+      <div class="set-row">
+        <div class="set-label" data-i18n="langLabel">Jazyk</div>
+        <select class="lang-select" id="lang-select">
+          <option value="sk">Slovenčina</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <button class="btn secondary" id="btn-settings-back" data-i18n="back">Späť</button>
     </div>
   </div>
 
@@ -595,6 +679,7 @@
   var HS_KEY = 'nasobilka_arena_highscores_v1';
   var HS_MAX_ENTRIES = 10;
   var LANG_KEY = 'quickmath_trainer_lang';
+  var DISPLAY_KEY = 'quickmath_trainer_display';
   var NAME_KEY = 'quickmath_trainer_name';
 
   // Multiplayer config. Firebase web config is public by design; access is protected by database.rules.json.
@@ -643,6 +728,12 @@
       howtoText: 'Trénuj malú aj veľkú násobilku a delenie. Začínaš s 3 životmi. Za každú správnu sériu 5 výsledkov dostaneš +1 život, za zlú oň prídeš. Tak isto keď si zastavíš hru prichádzaš o -1 život. Čaká ťa 10 úrovní. Dokáž sebe, že zvládni všetky!',
       back: 'Späť',
       mpBtn: 'Multiplayer',
+      settingsBtn: 'Nastavenia',
+      settingsTitle: 'NASTAVENIA',
+      displayLabel: 'Zobrazenie',
+      displayClassic: 'Súčasné',
+      displayPixel: 'Pixel art',
+      langLabel: 'Jazyk',
       mpCreate: 'Vytvoriť miestnosť',
       mpOr: 'alebo',
       mpCodePh: 'kód',
@@ -696,6 +787,12 @@
       howtoText: 'Train both small and large multiplication and division. You start with 3 lives. For every correct streak of 5 answers you gain +1 life, a wrong answer costs you one. Likewise, pausing the game costs you -1 life. 10 levels await you. Prove to yourself that you can master them all!',
       back: 'Back',
       mpBtn: 'Multiplayer',
+      settingsBtn: 'Settings',
+      settingsTitle: 'SETTINGS',
+      displayLabel: 'Display',
+      displayClassic: 'Classic',
+      displayPixel: 'Pixel art',
+      langLabel: 'Language',
       mpCreate: 'Create room',
       mpOr: 'or',
       mpCodePh: 'code',
@@ -746,6 +843,7 @@
     game: document.getElementById('screen-game'),
     gameover: document.getElementById('screen-gameover'),
     howto: document.getElementById('screen-howto'),
+    settings: document.getElementById('screen-settings'),
     mpMenu: document.getElementById('screen-mp-menu'),
     mpLobby: document.getElementById('screen-mp-lobby'),
     mpResults: document.getElementById('screen-mp-results')
@@ -931,12 +1029,40 @@
     });
   }
 
+  // ---------- Display mode (classic / pixel art) ----------
+  var PX_FONT_URL = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap';
+  var PX_SVG_HEART = '<svg class="pxheart%E" viewBox="0 0 7 6" aria-hidden="true"><path fill="currentColor" d="M1 0h2v1H1zM4 0h2v1H4zM0 1h7v2H0zM1 3h5v1H1zM2 4h3v1H2zM3 5h1v1H3z"/></svg>';
+  var PX_SVG_OK = '<svg viewBox="0 0 8 8" aria-hidden="true"><path fill="currentColor" d="M6 1h2v2H6zM5 3h2v2H5zM1 4h2v2H1zM3 5h2v2H3zM4 4h1v1H4z"/></svg>';
+  var PX_SVG_BAD = '<svg viewBox="0 0 8 8" aria-hidden="true"><path fill="currentColor" d="M0 0h2v2H0zM6 0h2v2H6zM2 2h2v2H2zM4 2h2v2H4zM2 4h2v2H2zM4 4h2v2H4zM0 6h2v2H0zM6 6h2v2H6z"/></svg>';
+  function isPixel(){ return document.body.classList.contains('px'); }
+  function pixelHeart(empty){ return PX_SVG_HEART.replace('%E', empty ? ' empty' : '') + ' '; }
+  function loadDisplay(){
+    try { return localStorage.getItem(DISPLAY_KEY) === 'pixel' ? 'pixel' : 'classic'; } catch(e){ return 'classic'; }
+  }
+  function applyDisplay(mode){
+    document.body.classList.toggle('px', mode === 'pixel');
+    if (mode === 'pixel' && !document.getElementById('px-font')){
+      var l = document.createElement('link');
+      l.id = 'px-font'; l.rel = 'stylesheet'; l.href = PX_FONT_URL;
+      document.head.appendChild(l);
+    }
+    document.querySelectorAll('[data-display]').forEach(function(b){
+      b.classList.toggle('selected', b.getAttribute('data-display') === mode);
+    });
+    renderHud();
+  }
+  function setDisplay(mode){
+    try { localStorage.setItem(DISPLAY_KEY, mode); } catch(e){}
+    applyDisplay(mode);
+  }
+
   function renderHud(){
     elHudLevel.textContent = state.level + '/' + MAX_LEVEL;
     elHudScore.textContent = state.score;
     var hearts = '';
     for (var i = 0; i < MAX_LIVES; i++){
-      if (i < state.lives) hearts += '♥ ';
+      if (isPixel()) hearts += pixelHeart(i >= state.lives);
+      else if (i < state.lives) hearts += '♥ ';
       else hearts += '<span class="empty">♥</span> ';
     }
     elHudLives.innerHTML = hearts.trim();
@@ -973,7 +1099,8 @@
         setTimeout(function(){
           var span = document.createElement('span');
           span.className = 'pop ' + kind;
-          span.textContent = char;
+          if (isPixel()) span.innerHTML = kind === 'ok' ? PX_SVG_OK : PX_SVG_BAD;
+          else span.textContent = char;
           var x = 15 + Math.random() * 70;
           var y = 25 + Math.random() * 45;
           span.style.left = x + '%';
@@ -1206,6 +1333,12 @@
     var ok = saveHighscore(name, parseInt(elFinalScore.textContent, 10));
     elSavedMsg.textContent = ok ? t('saved') : t('saveFailed');
     renderHighscores();
+  });
+
+  document.getElementById('btn-settings').addEventListener('click', function(){ showScreen('settings'); });
+  document.getElementById('btn-settings-back').addEventListener('click', function(){ showScreen('start'); });
+  document.querySelectorAll('[data-display]').forEach(function(b){
+    b.addEventListener('click', function(){ setDisplay(b.getAttribute('data-display')); });
   });
 
   elLangSelect.addEventListener('change', function(){
@@ -1768,6 +1901,7 @@
   // ---------- Init ----------
   state.lang = loadLang();
   elLangSelect.value = state.lang;
+  applyDisplay(loadDisplay());
   applyLanguage();
   showScreen('start');
 

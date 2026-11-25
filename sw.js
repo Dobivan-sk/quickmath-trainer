@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quickmath-trainer-v3';
+const CACHE_NAME = 'quickmath-trainer-v4';
 const ASSETS = [
   './Quick-Math.html',
   './manifest.json',
