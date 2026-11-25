@@ -250,7 +250,8 @@
   .keypad-enter:active{ background: rgba(237,28,36,0.3); }
 
   @media (min-height: 751px){
-    #screen-game{ padding-top: 88px; } /* shifts the equation + keypad ~30px lower, away from the HUD */
+    #screen-game{ padding-top: 148px; } /* shifts the equation + keypad lower, away from the HUD */
+    .keypad-key{ aspect-ratio:auto; height:76px; } /* slightly lower keys so the keypad still clears the footer */
   }
 
   @media (max-height: 750px){
